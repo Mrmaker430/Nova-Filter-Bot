@@ -11,7 +11,7 @@ async def executor(client, message):
     try:
         code = message.text.split(" ", 1)[1]
     except:
-        return await message.reply('Command Incomplete!\nUsage: /eval your_python_code')
+        return await message.reply("⚠️ <b>Command Incomplete!</b>\n\n<blockquote><b>Usage:</b> <code>/eval print('hello')</code></blockquote>")
     old_stderr = sys.stderr
     old_stdout = sys.stdout
     redirected_output = sys.stdout = StringIO()
@@ -33,14 +33,14 @@ async def executor(client, message):
     elif stdout:
         evaluation = stdout
     else:
-        evaluation = "Success!"
-    final_output = f"Output:\n\n<code>{evaluation}</code>"
+        evaluation = "✨ Success!"
+    final_output = f"🖥️ <b>Execution Output:</b>\n\n<blockquote><code>{evaluation}</code></blockquote>"
     try:
         await message.reply(final_output)
     except MessageTooLong:
         with open('eval.txt', 'w+') as outfile:
             outfile.write(final_output)
-        await message.reply_document('eval.txt')
+        await message.reply_document('eval.txt', caption="🖥️ <b>Execution Output Exceeded Limit (Sent as File)</b>")
         os.remove('eval.txt')
 
 

@@ -82,7 +82,7 @@ async def submit_payment_handler(request):
         ]]
         text = f"""💰 New Payment Received!\n\nUser: <a href="tg://user?id={user_id}">{user_name}</a>\nUser ID: <code>{user_id}</code>\nPlan: {bot_plan_name} ({plan_days} Days)"""
         await temp.BOT.send_photo(chat_id=OWNER_USERNAME, photo=photo_io, caption=text, reply_markup=InlineKeyboardMarkup(btn))
-        await temp.BOT.send_message(chat_id=int(user_id), text=f"Thank you! Your payment slip has been sent to the owner. Once it is verified, your Premium Plan [{bot_plan_name}] will be activated soon.\n\nSupport: @{OWNER_USERNAME}")
+        await temp.BOT.send_message(chat_id=int(user_id), text=f"🎉 <b>Payment Slip Received!</b>\n\n<blockquote>✨ Thank you! Your payment slip has been sent to the owner for verification.\n\n💎 <b>Plan:</b> <code>{bot_plan_name}</code> ({plan_days} Days)\n\n⏳ Once verified, your VIP Premium Plan will be activated immediately!</blockquote>\n\n💬 <b>Support:</b> @{OWNER_USERNAME}")
         
         return web.json_response({"status": "success"})
         

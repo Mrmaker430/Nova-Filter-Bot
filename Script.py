@@ -5,145 +5,175 @@
 
 class script(object):
 
-    START_TXT = """<emoji id='5210956306952758910'>👋</emoji> <b>ʜᴇʏ {}, <i>{}</i>
+    START_TXT = """👋 <b>Hello {}, <i>{}</i></b>
+
+<blockquote>🌟 <b>I am a high-performance Auto Filter & Link Shortener Bot.</b> Add me as an admin to your group or channel, and I will instantly deliver movies & TV series with smart buttons and fast cloud streaming links! 🚀</blockquote>"""
+
+    MY_ABOUT_TXT = """🤖 <b>System Architecture & Info</b>
+
+<blockquote>🖥️ <b>Server</b>: <a href="https://www.heroku.com">Cloud Engine</a>
+🗄️ <b>Database</b>: <a href="https://www.mongodb.com">MongoDB Atlas</a>
+🐍 <b>Language</b>: <a href="https://www.python.org">Python 3.11+</a>
+⚡ <b>Framework</b>: <a href="https://kurigram.icu/">Kurigram Async</a></blockquote>"""
+
+    MY_OWNER_TXT = """👨‍💻 <b>Developer & Owner Details</b>
+
+<blockquote>🧑‍💻 <b>Lead Developer</b>: Hansaka Anuhas
+💬 <b>Telegram</b>: @Hansaka_Anuhas
+🛠️ <b>Support</b>: Available 24/7 via Support Group</blockquote>"""
+
+    STATUS_TXT = """📊 <b>Nova Filter System Diagnostics</b>
+
+<blockquote><b>👥 User & Group Metrics</b>
+• 👤 Total Users: <code>{}</code>
+• 😎 Premium Users: <code>{}</code>
+• 👥 Total Connected Chats: <code>{}</code>
+
+<b>🗄️ Data Database Status</b>
+• 📦 DB Storage Used: <code>{}</code>
+
+<b>🗳️ Primary Files Database</b>
+• 🗂️ Indexed Files: <code>{}</code>
+• 📦 Storage Used: <code>{}</code>
+
+<b>🗳️ Secondary Files Database</b>
+• 🗂️ Indexed Files: <code>{}</code>
+• 📦 Storage Used: <code>{}</code>
+
+<b>🚀 System Uptime</b>: <code>{}</code></blockquote>"""
+
+    NEW_GROUP_TXT = """📌 <b>#NewGroup Connected</b>
+
+🏷️ <b>Title</b>: {}
+🆔 <b>ID</b>: <code>{}</code>
+🔗 <b>Username</b>: {}
+👥 <b>Total Members</b>: <code>{}</code>"""
+
+    NEW_USER_TXT = """👤 <b>#NewUser Started Bot</b>
+
+🧑 <b>Name</b>: {}
+🆔 <b>ID</b>: <code>{}</code>"""
+
+    NOT_FILE_TXT = """👋 <b>Hello {},</b>
+
+<blockquote>🥲 <b>We couldn't locate any streaming or download files for:</b> <code>{}</code></blockquote>
+
+<b>🔍 Why might this file be missing?</b>
+• ✏️ <b>Spelling Error</b>: Check for typos or release year formatting.
+• ⏳ <b>Not Released Yet</b>: The movie or season might not have digital availability.
+• 🗂️ <b>Not Indexed</b>: We might still be processing or uploading this title.
+
+<b>💡 Recommended Next Steps:</b>
+• 🌐 Click <b>Search Google</b> below to verify exact movie/series names and release dates.
+• 📖 Click <b>Instructions</b> below to see advanced search syntax tips.
+• 📝 Type <code>/request Movie Name Year</code> directly in chat to notify our 24/7 upload team!"""
     
-ɪ ᴀᴍ ᴘᴏᴡᴇʀғᴜʟ ᴀᴜᴛᴏ ғɪʟᴛᴇʀ ᴡɪᴛʜ ʟɪɴᴋ sʜᴏʀᴛᴇɴᴇʀ ʙᴏᴛ. ʏᴏᴜ ᴄᴀɴ ᴜꜱᴇ ᴀꜱ ᴀᴜᴛᴏ ғɪʟᴛᴇʀ ᴡɪᴛʜ ʟɪɴᴋ sʜᴏʀᴛᴇɴᴇʀ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ... ɪᴛ'ꜱ ᴇᴀꜱʏ ᴛᴏ ᴜꜱᴇ ᴊᴜsᴛ ᴀᴅᴅ ᴍᴇ ᴀꜱ ᴀᴅᴍɪɴ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ ɪ ᴡɪʟʟ ᴘʀᴏᴠɪᴅᴇ ᴛʜᴇʀᴇ ᴍᴏᴠɪᴇꜱ ᴡɪᴛʜ ʏᴏᴜʀ ʟɪɴᴋ ꜱʜᴏʀᴛᴇɴᴇʀ... ♻️</b>"""
+    IMDB_TEMPLATE = """🎬 <b>{title}</b> ({year})
 
-    MY_ABOUT_TXT = """★ Server: <a href=https://www.heroku.com>Heroku</a>
-★ Database: <a href=https://www.mongodb.com>MongoDB</a>
-★ Language: <a href=https://www.python.org>Python</a>
-★ Library: <a href=https://kurigram.icu/>Kurigram</a>"""
+<blockquote>🏷️ <b>Title</b>: <a href="{url}">{title}</a>
+🎭 <b>Genres</b>: {genres}
+🌟 <b>Rating</b>: <code>{rating} / 10</code>
+☀️ <b>Languages</b>: {languages}
+⏱️ <b>RunTime</b>: <code>{runtime} Min</code></blockquote>
 
-    MY_OWNER_TXT = """★ Name: Hansaka Anuhas
-★ Username: @Hansaka_Anuhas"""
+🗣️ <b>Requested by</b>: {mention}
+⚡ <b>Powered by</b>: <b>{group_title}</b>"""
 
-    STATUS_TXT = """👤 Total Users: <code>{}</code>
-😎 Premium Users: <code>{}</code>
-👥 Total Chats: <code>{}</code>
-🗳 Data database used: <code>{}</code>
+    FILE_CAPTION = """📁 <b>{file_name}</b>
 
-🗂 1st database Files: <code>{}</code>
-🗳 1st files database used: <code>{}</code>
+<blockquote>⚠️ <i>Please click the ✖️ Close button below once you have saved or downloaded this file!</i></blockquote>"""
 
-🗂 2nd database Files: <code>{}</code>
-🗳 2nd files database used: <code>{}</code>
+    WELCOME_TEXT = """👋 <b>Hello {mention},</b>
 
-🚀 Bot Uptime: <code>{}</code>"""
+<blockquote>✨ Welcome to <b>{title}</b>! We are glad to have you here. Type any movie or series name below to get instant download links! 💞</blockquote>"""
 
-    NEW_GROUP_TXT = """#NewGroup
-Title - {}
-ID - <code>{}</code>
-Username - {}
-Total - <code>{}</code>"""
+    HELP_TXT = """👋 <b>Hello {},</b>
 
-    NEW_USER_TXT = """#NewUser
-★ Name: {}
-★ ID: <code>{}</code>"""
+<blockquote>✨ I am a high-performance Auto Filter & Link Shortener Bot designed to deliver instant movie & series files!</blockquote>
 
-    NOT_FILE_TXT = """👋 Hello {},
+<b>🌟 Key Features & Capabilities:</b>
+• 🔍 <b>Auto-Filter</b>: Type any movie/series name directly in PM or any connected group!
+• ⚡ <b>Stream & Download</b>: Fast online streaming & direct cloud download links.
+• 🔖 <b>Watchlist & Favorites</b>: Save files instantly with dedicated inline buttons.
+• 🎯 <b>Smart Search</b>: Advanced Season & Episode filters with quality & language selectors.
 
-I can't find the <b>{}</b> in my database! 🥲
+<i>Explore all commands using the buttons below! 👇</i>"""
 
-👉 Google Search and check your spelling is correct.
-👉 Please read the Instructions to get better results.
-👉 Or not been released yet.
+    ADMIN_COMMAND_TXT = """🛡️ <b>Admin Commands Panel</b>
 
-You can also send a request using the /request command.
-"""
+<blockquote><b>⚙️ System & DB</b>
+• 📊 /stats - Check system status
+• 🔄 /restart - Reboot bot cleanly
+• 🛠️ /repair_mode - Maintenance mode
+• 🗳️ /index - Index channel files
+• 📑 /index_channels - Indexed channels
+• 🗑️ /delete - Delete files by query
+• 💥 /delete_all - Wipe indexed DB
+
+<b>📢 Broadcast & Groups</b>
+• 📢 /broadcast - PM broadcast
+• 📣 /grp_broadcast - Group broadcast
+• 📌 /pin_broadcast - Pinned PM broadcast
+• 📍 /pin_grp_broadcast - Pinned group broadcast
+• 👥 /users - PM users stats
+• 📁 /chats - Group chats stats
+• 🚪 /leave - Leave group chat
+• 🔗 /invite_link - Create invite link
+
+<b>💎 VIP Premium & FSub</b>
+• 👑 /add_prm - Grant VIP status
+• 🚫 /rm_prm - Revoke VIP status
+• 🛡️ /set_fsub - Force-Sub channels
+• 🔔 /set_req_fsub - Request FSub channel
+• 🧹 /delreq - Clear join requests</blockquote>"""
     
-    IMDB_TEMPLATE = """✅ I Found: <code>{query}</code>
+    PLAN_TXT = """💎 <b>Upgrade To Nova Premium</b>
 
-🏷 Title: <a href={url}>{title}</a>
-🎭 Genres: {genres}
-📆 Year: {year}
-🌟 Rating: {rating} / 10
-☀️ Languages: {languages}
-📀 RunTime: {runtime} Minutes
+<blockquote>Unlock exclusive VIP benefits and experience lightning-fast, ad-free file delivery without limits!</blockquote>
 
-🗣 Requested by: {mention}
-©️ Powered by: <b>{group_title}</b>"""
+<b>🔥 Exclusive Premium Features:</b>
+• 🚫 <b>100% Ad-Free Experience</b> (No shortlink redirects)
+• ⚡ <b>Instant Watch & Download</b> (Stream online or fast direct download)
+• 🔓 <b>No Force-Subscribe Required</b> (Skip channel joins)
+• 🔖 <b>Unlimited Watchlist & Favorites</b>
+• 💬 <b>Priority 24/7 Admin Support</b>
 
-    FILE_CAPTION = """<i>{file_name}</i>
-
-🚫 ᴘʟᴇᴀsᴇ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ᴄʟᴏsᴇ ʙᴜᴛᴛᴏɴ ɪꜰ ʏᴏᴜ ʜᴀᴠᴇ sᴇᴇɴ ᴛʜᴇ ᴍᴏᴠɪᴇ 🚫"""
-
-    WELCOME_TEXT = """👋 Hello {mention}, Welcome to {title} group! 💞"""
-
-    HELP_TXT = """👋 Hello {},
-    
-I can filter movie and series you want
-Just type you want movie or series in my PM or adding me in to group
-And i have more feature for you
-Just try my commands"""
-
-    ADMIN_COMMAND_TXT = """<b>Here is bot admin commands 👇
-
-
-/index_channels - to check how many index channel id added
-/stats - to get bot status
-/delete - to delete files using query
-/delete_all - to delete all indexed file
-/broadcast - to send message to all bot users
-/grp_broadcast - to send message to all groups
-/pin_broadcast - to send message as pin to all bot users.
-/pin_grp_broadcast - to send message as pin to all groups.
-/restart - to restart bot
-/leave - to leave your bot from particular group
-/users - to get all users details
-/chats - to get all groups
-/invite_link - to generate invite link
-/index - to index bot accessible channels
-/add_prm - to add new premium user
-/rm_prm - to add remove premium user
-/delreq - to delete join request in db (if change REQUEST_FORCE_SUB_CHANNEL ? then must need use this command)
-/set_req_fsub - to set request force subscribe channel
-/set_fsub - to set force subscribe channels
-/repair_mode - to enable/disable maintenance mode in bot</b>"""
-    
-    PLAN_TXT = """Activate any premium plan to get exclusive features.
-
-You can activate any premium plan and then you can get exclusive features.
-
-Basic premium features:
-Ad free experience
-Online watch and fast download
-No need joind channels
-No need verify
-No shortlink
-Admins support
-And more...
-
-Available Plans:
+<b>🏷️ Available Subscription Tiers:</b>
 <blockquote>{}</blockquote>
 
-Support: @{}"""
+💬 <b>Ready to Upgrade?</b> Contact our support: @{}"""
 
-    USER_COMMAND_TXT = """<b>Here is bot user commands 👇
+    USER_COMMAND_TXT = """👤 <b>Bot User Commands Panel</b>
 
-/start - to check bot alive or not
-/myplan - to check my activated premium plan
-/plan - to view premium plan details
-/img_2_link - upload image to uguu.se and get link
-/settings - to change group settings as your wish
-/connect - to connect group settings to PM
-/id - to check group or channel id
-/download - Download videos from YouTube, Facebook, TikTok, Instagram, and more platforms.
-/request - request a new movie and tv series</b>"""
+<blockquote><b>🎬 Search & Files</b>
+• 🚀 /start - Check if bot is alive & active
+• 🔖 /watchlist - View your saved Watchlist files
+• ❤️ /favorites - View your saved Favorite files
+• 📝 /request - Request a new movie or TV series
+• 📥 /download - Download videos from YouTube, TikTok, FB & Insta
+
+<b>⚙️ Settings & Group Control</b>
+• ⚙️ /settings - Customize group filter preferences
+• 🔗 /connect - Manage group settings from PM
+• 🆔 /id - Check current group or channel ID
+
+<b>💎 Premium & Utilities</b>
+• 💎 /plan - View available premium subscription tiers
+• 👑 /myplan - Check your active premium status & expiry
+• 🖼️ /img_2_link - Upload an image to cloud & get URL</blockquote>"""
     
-    SOURCE_TXT = """<b>ʙᴏᴛ ɢɪᴛʜᴜʙ ʀᴇᴘᴏsɪᴛᴏʀʏ -
+    SOURCE_TXT = """📂 <b>Open Source Repository</b>
 
-- ᴛʜɪꜱ ʙᴏᴛ ɪꜱ ᴀɴ ᴏᴘᴇɴ ꜱᴏᴜʀᴄᴇ ᴘʀᴏᴊᴇᴄᴛ.
-
-- ꜱᴏᴜʀᴄᴇ - <a href=https://github.com/xHansaka-Anuhas/Nova-Filter-Bot>ʜᴇʀᴇ</a>
-
-- ᴅᴇᴠʟᴏᴘᴇʀ - @Hansaka_Anuhas"""
+<blockquote>🛠️ <b>Project</b>: Nova Auto Filter Bot
+🔗 <b>Repository</b>: <a href="https://github.com/xHansaka-Anuhas/Nova-Filter-Bot">GitHub Repo</a>
+🧑‍💻 <b>Lead Developer</b>: @Hansaka_Anuhas</blockquote>"""
 
 
-    NEW_ADDED_TEMPLATE = """✅ New Added ✅
+    NEW_ADDED_TEMPLATE = """✅ <b>New Content Added</b>
 
-🏷 Title: <a href={url}>{title}</a>
-🎭 Genres: {genres}
-📆 Year: {year}
-🌟 Rating: {rating} / 10
-☀️ Languages: {languages}
-📀 RunTime: {runtime} Minutes"""
+<blockquote>🏷️ <b>Title</b>: <a href="{url}">{title}</a>
+🎭 <b>Genres</b>: {genres}
+📆 <b>Year</b>: {year}
+🌟 <b>Rating</b>: <code>{rating} / 10</code>
+☀️ <b>Languages</b>: {languages}
+⏱️ <b>RunTime</b>: <code>{runtime} Min</code></blockquote>"""

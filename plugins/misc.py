@@ -14,7 +14,7 @@ async def showid(client, message):
     chat_type = message.chat.type
     replied_to_msg = bool(message.reply_to_message)
     if replied_to_msg:
-        return await message.reply_text(f"""The forwarded message channel {replied_to_msg.chat.title}'s id is, <code>{replied_to_msg.chat.id}</code>.""")
+        return await message.reply_text(f"ℹ️ <b>Forwarded Channel Info:</b>\n\n<blockquote>📢 <b>Channel Name:</b> {replied_to_msg.chat.title}\n🆔 <b>Channel ID:</b> <code>{replied_to_msg.chat.id}</code></blockquote>")
     if chat_type == enums.ChatType.PRIVATE:
         await message.reply_text(f'★ User ID: <code>{message.from_user.id}</code>')
 
@@ -28,12 +28,12 @@ async def showid(client, message):
 @Client.on_message(filters.command('speedtest') & filters.user(ADMINS))
 async def speedtest(client, message):
     #from - https://github.com/weebzone/WZML-X/blob/master/bot/modules/speedtest.py
-    msg = await message.reply_text("Initiating Speedtest...")
+    msg = await message.reply_text("⚡ <b>Initiating Speedtest...</b>\n\n<blockquote>⏳ Testing server latency, download speed, and upload speed...</blockquote>")
     try:
         speed = Speedtest()
         speed.get_best_server()
     except (ConfigRetrievalError, SpeedtestBestServerFailure):
-        await msg.edit("Can't connect to Server at the Moment, Try Again Later !")
+        await msg.edit("❌ <b>Speedtest Failed!</b>\n\n<blockquote>Cannot connect to speedtest server right now. Please try again later.</blockquote>")
         return
     speed.download()
     speed.upload()
@@ -72,7 +72,7 @@ async def speedtest(client, message):
 @Client.on_message(filters.command("info"))
 async def who_is(client, message):
     status_message = await message.reply_text(
-        "Fetching user info..."
+        "🔍 <b>Fetching User Info...</b>\n\n<blockquote>⏳ Retrieving account details and statistics...</blockquote>"
     )
     if message.reply_to_message:
         from_user_id = message.reply_to_message.from_user.id
@@ -83,7 +83,7 @@ async def who_is(client, message):
     try:
         from_user = await client.get_users(from_user_id)
     except Exception as error:
-        await status_message.edit(f'Error: {error}')
+        await status_message.edit(f"❌ <b>Error Fetching Info:</b>\n\n<blockquote><code>{error}</code></blockquote>")
         return
 
     message_out_str = ""
@@ -156,7 +156,7 @@ async def download_video(client, message):
     if len(message.command) > 1:
         link = message.command[1]
     else:
-        return await message.reply("Use: /download video-url")
+        return await message.reply("⚠️ <b>Missing Video Link!</b>\n\n<blockquote><b>Usage:</b> <code>/download https://youtube.com/watch?v=...</code></blockquote>")
 
     status_msg = await message.reply("⏳ Downloading video, please wait...")
 
@@ -201,10 +201,10 @@ async def download_video(client, message):
         await status_msg.delete()
 
     except yt_dlp.utils.DownloadError as e:
-        await status_msg.edit(f"Download failed:\n`{str(e)}`")
+        await status_msg.edit(f"❌ <b>Download Failed!</b>\n\n<blockquote><code>{str(e)}</code></blockquote>")
 
     except Exception as e:
-        await status_msg.edit(f"Error:\n`{str(e)}`")
+        await status_msg.edit(f"❌ <b>An Error Occurred!</b>\n\n<blockquote><code>{str(e)}</code></blockquote>")
 
     finally:
         if downloaded_file and os.path.exists(downloaded_file):

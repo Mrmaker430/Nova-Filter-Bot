@@ -260,6 +260,30 @@ class Database:
         req = await self.movie_req.find_one({'req_id': req_id})
         return req
 
+    async def add_to_watchlist(self, user_id, file_id):
+        await self.col.update_one({'id': int(user_id)}, {'$addToSet': {'watchlist': str(file_id)}}, upsert=True)
+
+    async def remove_from_watchlist(self, user_id, file_id):
+        await self.col.update_one({'id': int(user_id)}, {'$pull': {'watchlist': str(file_id)}})
+
+    async def get_watchlist(self, user_id):
+        user = await self.col.find_one({'id': int(user_id)})
+        if user:
+            return user.get('watchlist', [])
+        return []
+
+    async def add_to_favorites(self, user_id, file_id):
+        await self.col.update_one({'id': int(user_id)}, {'$addToSet': {'favorites': str(file_id)}}, upsert=True)
+
+    async def remove_from_favorites(self, user_id, file_id):
+        await self.col.update_one({'id': int(user_id)}, {'$pull': {'favorites': str(file_id)}})
+
+    async def get_favorites(self, user_id):
+        user = await self.col.find_one({'id': int(user_id)})
+        if user:
+            return user.get('favorites', [])
+        return []
+
     async def del_movie_req(self, req_id):
         await self.movie_req.delete_many({'req_id': req_id})
 

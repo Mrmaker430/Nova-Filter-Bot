@@ -1326,15 +1326,33 @@ watch_tmplt = """<!DOCTYPE html>
         }
         .ha-link:hover { opacity:.7; }
 
-        /* Plyr overrides */
+        /* Plyr overrides & Mobile Timeline Fix */
         .plyr { width: 100% !important; height: 100% !important; }
         .plyr__controls {
             width: 100% !important;
             bottom: 0 !important;
-            padding: 10px 15px !important;
-            justify-content: space-between !important;
+            padding: 10px 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-wrap: nowrap !important;
         }
-        .plyr__progress { flex-grow: 1 !important; display: flex !important; }
+        .plyr__progress__container {
+            flex: 1 1 auto !important;
+            min-width: 60px !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .plyr__progress {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .plyr__progress input[type=range] {
+            width: 100% !important;
+            display: block !important;
+        }
         .plyr--video .plyr__control--overlaid {
             position: absolute !important;
             top: 50% !important;
@@ -1356,19 +1374,42 @@ watch_tmplt = """<!DOCTYPE html>
         .plyr__progress__buffer { color:rgba(129,140,248,.2); }
         .plyr__menu__container .plyr__control[role=menuitemradio][aria-checked=true]::before { background:var(--p); }
 
-        /* Responsive */
+        /* Responsive Mobile Player Timeline & 2x2 Buttons Grid */
         @media (max-width:768px) {
-            .plyr__volume input[type=range] { display:none !important; max-width:0 !important; }
-            .plyr__volume { width:auto !important; min-width:0 !important; }
-            .plyr__controls { gap:4px !important; padding:8px 10px !important; }
-            .plyr__progress { min-width:100px !important; }
-            .plyr__time { font-size:12px !important; padding:0 !important; }
-            .plyr__control { padding:5px !important; }
+            .plyr__controls {
+                gap: 4px !important;
+                padding: 8px 10px !important;
+                display: flex !important;
+                flex-wrap: nowrap !important;
+            }
+            .plyr__progress__container {
+                flex: 1 1 auto !important;
+                min-width: 50px !important;
+                display: flex !important;
+            }
+            .plyr__progress {
+                display: flex !important;
+                width: 100% !important;
+            }
+            .plyr__volume {
+                display: none !important;
+            }
+            .plyr__time--duration {
+                display: none !important;
+            }
+            .plyr__time--current {
+                font-size: 11px !important;
+                padding: 0 2px !important;
+            }
+            .plyr__control {
+                padding: 5px !important;
+            }
         }
         @media (max-width:600px) {
             .container { padding:1rem .85rem .85rem; }
-            .btn-row, .err-btn-grid { grid-template-columns:1fr; gap:.6rem; }
-            .xbtn { padding:.78rem 1rem; }
+            .btn-row { grid-template-columns: repeat(2, 1fr) !important; gap: .6rem; }
+            .err-btn-grid { grid-template-columns:1fr; gap:.6rem; }
+            .xbtn { padding:.75rem .6rem; font-size: .8rem; }
             #file-name { font-size:.78rem; }
         }
     </style>

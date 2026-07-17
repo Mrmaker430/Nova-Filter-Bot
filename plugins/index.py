@@ -15,7 +15,7 @@ async def index_files(bot, query):
     _, ident, chat, lst_msg_id, skip = query.data.split("#")
     if ident == 'yes':
         msg = query.message
-        await msg.edit("Starting Indexing...")
+        await msg.edit("🚀 <b>Starting Indexing Process...</b>")
         try:
             chat = int(chat)
         except:
@@ -23,18 +23,18 @@ async def index_files(bot, query):
         await index_files_to_db(int(lst_msg_id), chat, msg, bot, int(skip))
     elif ident == 'cancel':
         temp.CANCEL = True
-        await query.message.edit("Trying to cancel Indexing...")
+        await query.message.edit("🛑 <b>Cancelling Indexing Process...</b>")
 
 
 @Client.on_message(filters.command('index') & filters.private & filters.user(ADMINS))
 async def send_for_index(bot, message):
     if lock.locked():
-        return await message.reply('Wait until previous process complete.')
-    i = await message.reply("Forward last message or send last message link.")
+        return await message.reply('⏳ <b>Indexing in Progress!</b>\n\n<blockquote>Please wait until the current indexing task finishes before starting a new one.</blockquote>')
+    i = await message.reply("📨 <b>Send Last Message or Link</b>\n\n<blockquote>Please forward the last message from the channel or paste its message link to set the indexing boundary:</blockquote>")
     msg = await bot.listen(chat_id=message.chat.id, user_id=message.from_user.id)
     if not msg:
         await i.delete()
-        return await message.reply('Timeout!')
+        return await message.reply('⏱️ <b>Request Timed Out!</b>\n\n<blockquote>You took too long to respond. Please start `/index` again when ready.</blockquote>')
     await i.delete()
     if msg.text and msg.text.startswith("https://t.me"):
         try:
@@ -44,40 +44,40 @@ async def send_for_index(bot, message):
             if chat_id.isnumeric():
                 chat_id = int(("-100" + chat_id))
         except:
-            await message.reply('Invalid message link!')
+            await message.reply('❌ <b>Invalid Message Link!</b>\n\n<blockquote>Please make sure you send a valid Telegram public/private message link.</blockquote>')
             return
     elif msg.forward_origin and msg.forward_origin.type == enums.MessageOriginType.CHANNEL:
         last_msg_id = msg.forward_origin.message_id 
         chat_id = msg.forward_origin.chat.username or msg.forward_origin.chat.id
     else:
-        await message.reply('This is not forwarded message or link.')
+        await message.reply('⚠️ <b>Invalid Input!</b>\n\n<blockquote>Please forward a message directly from the channel or send a valid message link.</blockquote>')
         return
     try:
         chat = await bot.get_chat(chat_id)
     except Exception as e:
-        return await message.reply(f'Errors - {e}')
+        return await message.reply(f'❌ <b>Error Occurred!</b>\n\n<blockquote>⚠️ Details: <code>{e}</code></blockquote>')
 
     if chat.type != enums.ChatType.CHANNEL:
-        return await message.reply("I can index only channels.")
+        return await message.reply("⚠️ <b>Channels Only!</b>\n\n<blockquote>I can only index files from channels where I am added as an administrator.</blockquote>")
 
-    s = await message.reply("Send skip message number.")
+    s = await message.reply("⏩ <b>Enter Skip Message ID</b>\n\n<blockquote>Please enter the message ID number from where you want to start indexing (or send <code>0</code> to start from the beginning):</blockquote>")
     msg = await bot.listen(chat_id=message.chat.id, user_id=message.from_user.id)
     if not msg:
         await s.delete()
-        return await message.reply('Timeout!')
+        return await message.reply('⏱️ <b>Request Timed Out!</b>\n\n<blockquote>You took too long to respond. Please start `/index` again when ready.</blockquote>')
     await s.delete()
     try:
         skip = int(msg.text)
     except:
-        return await message.reply("Number is invalid.")
+        return await message.reply("❌ <b>Invalid Number!</b>\n\n<blockquote>Please send a valid integer number (e.g. <code>0</code> or <code>100</code>).</blockquote>")
 
     buttons = [[
-        InlineKeyboardButton('YES', callback_data=f'index#yes#{chat_id}#{last_msg_id}#{skip}')
+        InlineKeyboardButton('✅ Yes, Index', callback_data=f'index#yes#{chat_id}#{last_msg_id}#{skip}')
     ],[
-        InlineKeyboardButton('CLOSE', callback_data='close_data'),
+        InlineKeyboardButton('✖️ Close', callback_data='close_data'),
     ]]
     reply_markup = InlineKeyboardMarkup(buttons)
-    await message.reply(f'Do you want to index {chat.title} channel?\nTotal Messages: <code>{last_msg_id}</code>', reply_markup=reply_markup)
+    await message.reply(f'🗳️ <b>Confirm Channel Indexing</b>\n\n<blockquote>📢 <b>Channel:</b> {chat.title}\n📊 <b>Total Messages:</b> <code>{last_msg_id}</code></blockquote>\n\nDo you want to proceed with indexing this channel?', reply_markup=reply_markup)
 
 
 async def index_files_to_db(lst_msg_id, chat, msg, bot, skip):
@@ -97,15 +97,15 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot, skip):
                 time_taken = get_readable_time(time.time()-start_time)
                 if temp.CANCEL:
                     temp.CANCEL = False
-                    await msg.edit(f"Successfully Cancelled!\nCompleted in {time_taken}\n\nSaved <code>{total_files}</code> files to Database!\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code>\nUnsupported Media: <code>{unsupported}</code>\nErrors Occurred: <code>{errors}</code>\nBad Files Ignoref: <code>{badfiles}</code>")
+                    await msg.edit(f"🛑 <b>Successfully Cancelled!</b>\n\n<blockquote>⏱️ <b>Time Taken:</b> {time_taken}\n✅ <b>Saved to Database:</b> <code>{total_files}</code> files\n⏩ <b>Duplicate Files Skipped:</b> <code>{duplicate}</code>\n🗑️ <b>Deleted Messages Skipped:</b> <code>{deleted}</code>\n💬 <b>Non-Media Skipped:</b> <code>{no_media + unsupported}</code>\n📂 <b>Unsupported Media:</b> <code>{unsupported}</code>\n❌ <b>Errors Occurred:</b> <code>{errors}</code>\n⚠️ <b>Bad Files Ignored:</b> <code>{badfiles}</code></blockquote>")
                     return
                 current += 1
                 if current % 30 == 0:
                     btn = [[
-                        InlineKeyboardButton('CANCEL', callback_data=f'index#cancel#{chat}#{lst_msg_id}#{skip}')
+                        InlineKeyboardButton('⚠️ Cancel', callback_data=f'index#cancel#{chat}#{lst_msg_id}#{skip}')
                     ]]
                     try:
-                        await msg.edit_text(text=f"Total messages received: <code>{current}</code>\nTotal messages saved: <code>{total_files}</code>\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code>\nUnsupported Media: <code>{unsupported}</code>\nErrors Occurred: <code>{errors}</code>\nBad Files Ignoref: <code>{badfiles}</code>", reply_markup=InlineKeyboardMarkup(btn))
+                        await msg.edit_text(text=f"🔄 <b>Indexing Progress:</b>\n\n<blockquote>📬 <b>Messages Received:</b> <code>{current}</code>\n✅ <b>Saved to Database:</b> <code>{total_files}</code>\n⏩ <b>Duplicate Skipped:</b> <code>{duplicate}</code>\n🗑️ <b>Deleted Skipped:</b> <code>{deleted}</code>\n💬 <b>Non-Media Skipped:</b> <code>{no_media + unsupported}</code>\n📂 <b>Unsupported Media:</b> <code>{unsupported}</code>\n❌ <b>Errors Occurred:</b> <code>{errors}</code>\n⚠️ <b>Bad Files Ignored:</b> <code>{badfiles}</code></blockquote>", reply_markup=InlineKeyboardMarkup(btn))
                     except FloodWait as e:
                         await asyncio.sleep(e.value)
                 if message.empty:
@@ -134,7 +134,7 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot, skip):
                 elif sts == 'err':
                     errors += 1
         except Exception as e:
-            await msg.reply(f'Index canceled due to Error - {e}')
+            await msg.reply(f"❌ <b>Index Canceled Due to Error!</b>\n\n<blockquote>⚠️ Details: <code>{e}</code></blockquote>")
         else:
             time_taken = get_readable_time(time.time()-start_time)
-            await msg.edit(f'Succesfully saved <code>{total_files}</code> to Database!\nCompleted in {time_taken}\n\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code>\nUnsupported Media: <code>{unsupported}</code>\nErrors Occurred: <code>{errors}</code>\nBad Files Ignoref: <code>{badfiles}</code>')
+            await msg.edit(f"🎉 <b>Successfully Saved <code>{total_files}</code> Files to Database!</b>\n\n<blockquote>⏱️ <b>Time Taken:</b> {time_taken}\n⏩ <b>Duplicate Files Skipped:</b> <code>{duplicate}</code>\n🗑️ <b>Deleted Messages Skipped:</b> <code>{deleted}</code>\n💬 <b>Non-Media Skipped:</b> <code>{no_media + unsupported}</code>\n📂 <b>Unsupported Media:</b> <code>{unsupported}</code>\n❌ <b>Errors Occurred:</b> <code>{errors}</code>\n⚠️ <b>Bad Files Ignored:</b> <code>{badfiles}</code></blockquote>")

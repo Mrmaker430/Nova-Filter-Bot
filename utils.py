@@ -96,7 +96,7 @@ async def is_subscribed(bot, query):
                 await bot.get_chat_member(int(id), query.from_user.id)
             except UserNotParticipant:
                 btn.append(
-                    [InlineKeyboardButton(f'Join : {chat.title}', url=chat.invite_link)]
+                    [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
                 )
     if REQUEST_FORCE_SUB_CHANNEL and not await db.find_join_req(query.from_user.id):
         id = REQUEST_FORCE_SUB_CHANNEL
@@ -106,7 +106,7 @@ async def is_subscribed(bot, query):
         except UserNotParticipant:
             url = await bot.create_chat_invite_link(int(id), creates_join_request=True)
             btn.append(
-                [InlineKeyboardButton(f'Request : {chat.title}', url=url.invite_link)]
+                [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
             )
     return btn
 
@@ -294,7 +294,7 @@ async def is_premium(user_id, bot):
     mp = await db.get_plan(user_id)
     if mp['premium']:
         if mp['expire'] < datetime.now():
-            await bot.send_message(user_id, f"Your premium {mp['plan']} is expired in {mp['expire'].strftime('%Y.%m.%d %H:%M:%S')}, use /plan to activate new plan again")
+            await bot.send_message(user_id, f"⏳ <b>VIP Premium Expiring Soon!</b>\n\n<blockquote>👑 Your <b>{mp['plan']}</b> VIP Premium access will expire on <code>{mp['expire'].strftime('%Y.%m.%d %H:%M:%S')}</code>. Please use /plan to renew your subscription and maintain uninterrupted ad-free service!</blockquote>")
             mp['expire'] = ''
             mp['plan'] = ''
             mp['premium'] = False
@@ -314,7 +314,7 @@ async def check_premium(bot):
                 try:
                     await bot.send_message(
                         p['id'],
-                        f"Your premium {mp['plan']} is expired in {mp['expire'].strftime('%Y.%m.%d %H:%M:%S')}, use /plan to activate new plan again"
+                        f"⏳ <b>VIP Premium Expiring Soon!</b>\n\n<blockquote>👑 Your <b>{mp['plan']}</b> VIP Premium access will expire on <code>{mp['expire'].strftime('%Y.%m.%d %H:%M:%S')}</code>. Please use /plan to renew your subscription and maintain uninterrupted ad-free service!</blockquote>"
                     )
                 except Exception:
                     pass
@@ -429,3 +429,77 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
+
+
+async def render_list_page(client, query_or_msg, user_id, list_type="watchlist", page=0, edit=False):
+    if list_type == "favorites":
+        items = await db.get_favorites(user_id)
+        title = "❤️ <b>Your Favorites List</b>"
+        empty_text = "💔 <b>Your Favorites list is currently empty!</b>\n\nClick on <b>❤️ Favorites</b> when viewing any file to save it here for quick access later."
+        del_cb_prefix = "del_fav"
+        page_cb_prefix = "favorites_page"
+        clear_cb = "clear_all_favorites"
+        clear_text = "🗑️ Clear All Favorites"
+    else:
+        items = await db.get_watchlist(user_id)
+        title = "🔖 <b>Your Watchlist</b>"
+        empty_text = "📂 <b>Your Watchlist is currently empty!</b>\n\nClick on <b>🔖 Watchlist</b> when viewing any file to save it here for quick access later."
+        del_cb_prefix = "del_watch"
+        page_cb_prefix = "watchlist_page"
+        clear_cb = "clear_all_watchlist"
+        clear_text = "🗑️ Clear All Watchlist"
+        
+    if not items:
+        buttons = [[InlineKeyboardButton("✖️ Close", callback_data="close_data")]]
+        if edit:
+            return await query_or_msg.edit_message_text(empty_text, reply_markup=InlineKeyboardMarkup(buttons))
+        else:
+            return await query_or_msg.reply_text(empty_text, reply_markup=InlineKeyboardMarkup(buttons))
+    
+    total_files = len(items)
+    total_pages = (total_files + 9) // 10
+    if page >= total_pages:
+        page = max(0, total_pages - 1)
+        
+    start_idx = page * 10
+    end_idx = min(start_idx + 10, total_files)
+    
+    current_ids = items[start_idx:end_idx]
+    buttons = []
+    from database.ia_filterdb import get_file_details
+    
+    for f_id in current_ids:
+        file_info = await get_file_details(f_id)
+        if not file_info:
+            buttons.append([
+                InlineKeyboardButton("⚠️ [Deleted/Missing File]", callback_data=f"file#{f_id}"),
+                InlineKeyboardButton("✖️", callback_data=f"{del_cb_prefix}#{f_id}#list#{page}")
+            ])
+            continue
+        fname = file_info.get('file_name', 'Unknown')
+        fsize = get_size(file_info.get('file_size', 0))
+        buttons.append([
+            InlineKeyboardButton(f"📁 [{fsize}] {fname[:35]}", callback_data=f"file#{f_id}"),
+            InlineKeyboardButton("✖️", callback_data=f"{del_cb_prefix}#{f_id}#list#{page}")
+        ])
+        
+    page_buttons = []
+    if page > 0:
+        page_buttons.append(InlineKeyboardButton("🔙 Back", callback_data=f"{page_cb_prefix}#{page - 1}"))
+    page_buttons.append(InlineKeyboardButton(f"📄 {page + 1}/{total_pages}", callback_data="noop"))
+    if end_idx < total_files:
+        page_buttons.append(InlineKeyboardButton("⏭️ Next", callback_data=f"{page_cb_prefix}#{page + 1}"))
+    if len(page_buttons) > 1:
+        buttons.append(page_buttons)
+        
+    buttons.append([InlineKeyboardButton(clear_text, callback_data=clear_cb)])
+    buttons.append([InlineKeyboardButton("✖️ Close", callback_data="close_data")])
+    
+    text = f"{title} (<b>{total_files} Files</b>)\n\n<blockquote>💡 Click any file below to get it instantly, or click ✖️ to remove it from your list.</blockquote>"
+    
+    if edit:
+        await query_or_msg.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+    else:
+        await query_or_msg.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+
+

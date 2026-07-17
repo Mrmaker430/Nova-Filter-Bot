@@ -11,7 +11,7 @@ from database.ia_filterdb import db_count_documents, second_db_count_documents, 
 from database.users_chats_db import db
 from datetime import datetime, timedelta
 from info import REQUESTS_CHANNEL, PREMIUM_PLANS, EFFECT_IDS, OWNER_USERNAME, IS_PREMIUM, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME
-from utils import get_plan_name, get_poster, is_premium, upload_image, get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds
+from utils import get_plan_name, get_poster, is_premium, upload_image, get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds, render_list_page
 import PTN
 
 
@@ -44,10 +44,10 @@ async def start(client, message):
         wish = get_wish()
         user = message.from_user.mention if message.from_user else "Dear"
         btn = [[
-            InlineKeyboardButton('⚡️ ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ ⚡️', url=UPDATES_LINK),
-            InlineKeyboardButton('💡 sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ 💡', url=SUPPORT_LINK)
+            InlineKeyboardButton('📢 Updates Channel', url=UPDATES_LINK),
+            InlineKeyboardButton('💬 Support Group', url=SUPPORT_LINK)
         ]]
-        await message.reply(text=f"<b>ʜᴇʏ {user}, <i>{wish}</i>\nʜᴏᴡ ᴄᴀɴ ɪ ʜᴇʟᴘ ʏᴏᴜ??</b>", reply_markup=InlineKeyboardMarkup(btn))
+        await message.reply(text=f"👋 <b>Hello {user}, <i>{wish}</i>!</b>\n\n<blockquote>✨ How can I help your group today? I am fully active and ready to deliver instant cloud files!</blockquote>", reply_markup=InlineKeyboardMarkup(btn))
         return 
         
     try:
@@ -66,21 +66,21 @@ async def start(client, message):
 
     if (len(message.command) != 2) or (len(message.command) == 2 and message.command[1] == 'start'):
         buttons = [[
-            InlineKeyboardButton("+ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ +", url=f'http://t.me/{temp.U_NAME}?startgroup=start', style=enums.ButtonStyle.PRIMARY)
+            InlineKeyboardButton("➕ Add Me To Your Group", url=f'http://t.me/{temp.U_NAME}?startgroup=start', style=enums.ButtonStyle.PRIMARY)
         ],[
-            InlineKeyboardButton('ℹ️ ᴜᴘᴅᴀᴛᴇs', url=UPDATES_LINK),
-            InlineKeyboardButton('🧑‍💻 sᴜᴘᴘᴏʀᴛ', url=SUPPORT_LINK)
+            InlineKeyboardButton('📢 Updates', url=UPDATES_LINK),
+            InlineKeyboardButton('💬 Support', url=SUPPORT_LINK)
         ],[
-            InlineKeyboardButton('👨‍🚒 ʜᴇʟᴘ', callback_data='help'),
-            InlineKeyboardButton('📚 ᴀʙᴏᴜᴛ', callback_data='about')
+            InlineKeyboardButton('💡 Hᴇʟᴘ', callback_data='help'),
+            InlineKeyboardButton('ℹ️ Aʙᴏᴜᴛ', callback_data='about')
         ],[
-            InlineKeyboardButton('🤑 Buy Premium', url=f"https://t.me/{temp.U_NAME}?start=premium"),
-            InlineKeyboardButton('🔎 sᴇᴀʀᴄʜ ɪɴʟɪɴᴇ', switch_inline_query_current_chat=''),
+            InlineKeyboardButton('💎 Buy Premium', url=f"https://t.me/{temp.U_NAME}?start=premium"),
+            InlineKeyboardButton('🔍 Search Inline', switch_inline_query_current_chat=''),
         ],[
-            InlineKeyboardButton('🎬 Popular Movie 🎬', url="https://www.themoviedb.org/movie"),
-            InlineKeyboardButton('📺 Popular TV Shows 📺', url="https://www.themoviedb.org/tv")
+            InlineKeyboardButton('🎬 Popular Movies', url="https://www.themoviedb.org/movie"),
+            InlineKeyboardButton('📺 Popular TV Shows', url="https://www.themoviedb.org/tv")
         ],[
-            InlineKeyboardButton('🌐 Mini WebApp 🌐', style=enums.ButtonStyle.SUCCESS, web_app=WebAppInfo(url=URL))
+            InlineKeyboardButton('🌐 Mini WebApp', style=enums.ButtonStyle.SUCCESS, web_app=WebAppInfo(url=URL))
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply_photo(
@@ -100,7 +100,7 @@ async def start(client, message):
     if mc.startswith('settings'):
         _, group_id = message.command[1].split("_")
         if not await is_check_admin(client, (int(group_id)), message.from_user.id):
-            return await message.reply("You not admin in this group.")
+            return await message.reply("🚫 You must be an administrator in this group to use settings!")
         btn = await get_grp_stg(int(group_id))
         chat = await client.get_chat(int(group_id))
         return await message.reply(f"Change your settings for <b>'{chat.title}'</b> as your wish. ⚙", reply_markup=InlineKeyboardMarkup(btn))
@@ -127,7 +127,7 @@ async def start(client, message):
             reply_markup = None
         else:
             btn = [[
-                InlineKeyboardButton("📌 Get File 📌", url=f'https://t.me/{temp.U_NAME}?start={verify_status["link"]}')
+                InlineKeyboardButton("📌 Get File", url=f'https://t.me/{temp.U_NAME}?start={verify_status["link"]}')
             ]]
             reply_markup = InlineKeyboardMarkup(btn)
         await message.reply(f"✅ You successfully verified until: {get_readable_time(VERIFY_EXPIRE)}", reply_markup=reply_markup, protect_content=True)
@@ -139,9 +139,9 @@ async def start(client, message):
         await update_verify_status(message.from_user.id, verify_token=token, link="" if mc == 'inline_verify' else mc)
         link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, f'https://t.me/{temp.U_NAME}?start=verify_{token}')
         btn = [[
-            InlineKeyboardButton("🧿 Verify 🧿", url=link)
+            InlineKeyboardButton("🧿 Verify", url=link)
         ],[
-            InlineKeyboardButton('🗳 Tutorial 🗳', url=VERIFY_TUTORIAL)
+            InlineKeyboardButton('📖 Tutorial', url=VERIFY_TUTORIAL)
         ]]
         await message.reply("You not verified today! Kindly verify now. 🔐", reply_markup=InlineKeyboardMarkup(btn), protect_content=True)
         return
@@ -149,7 +149,7 @@ async def start(client, message):
     btn = await is_subscribed(client, message)
     if btn:
         btn.append(
-            [InlineKeyboardButton("🔁 Try Again 🔁", callback_data=f"checksub#{mc}")]
+            [InlineKeyboardButton("🔁 Try Again", callback_data=f"checksub#{mc}")]
         )
         reply_markup = InlineKeyboardMarkup(btn)
         await message.reply_photo(
@@ -164,10 +164,12 @@ async def start(client, message):
         _, grp_id, key = mc.split("_", 2)
         files = temp.GET_ALL_FILES.get(key)
         if not files:
-            return await message.reply('No Such All Files Exist!')
+            return await message.reply('⚠️ <b>No Files Found!</b>\n\n<blockquote>Could not locate any files for this batch request.</blockquote>')
         settings = await get_settings(int(grp_id))
         file_ids = []
         total_files = await message.reply(f"<b><i>🗂 Total files - <code>{len(files)}</code></i></b>")
+        user_watchlist = await db.get_watchlist(message.from_user.id)
+        user_favorites = await db.get_favorites(message.from_user.id)
         for file in files:
             CAPTION = settings['caption']
             f_caption = CAPTION.format(
@@ -175,15 +177,22 @@ async def start(client, message):
                 file_size=get_size(file['file_size']),
                 file_caption=file['caption']
             )      
+            f_id_str = str(file['_id'])
+            watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{f_id_str}") if f_id_str in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
+            fav_btn = InlineKeyboardButton("💔 Remove Favorites", callback_data=f"del_fav#{f_id_str}") if f_id_str in user_favorites else InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{f_id_str}")
             if IS_STREAM:
                 btn = [[
-                    InlineKeyboardButton("✛ ᴡᴀᴛᴄʜ & ᴅᴏᴡɴʟᴏᴀᴅ ✛", callback_data=f"stream#{file['_id']}")
+                    InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
                 ],[
-                    InlineKeyboardButton('⁉️ ᴄʟᴏsᴇ ⁉️', callback_data='close_data')
+                    watch_btn, fav_btn
+                ],[
+                    InlineKeyboardButton("✖️ Close", callback_data="close_data")
                 ]]
             else:
                 btn = [[
-                    InlineKeyboardButton('⁉️ ᴄʟᴏsᴇ ⁉️', callback_data='close_data')
+                    watch_btn, fav_btn
+                ],[
+                    InlineKeyboardButton("✖️ Close", callback_data="close_data")
                 ]]
 
             msg = await client.send_cached_media(
@@ -197,14 +206,14 @@ async def start(client, message):
             await asyncio.sleep(2)
 
         time = get_readable_time(PM_FILE_DELETE_TIME)
-        vp = await message.reply(f"Nᴏᴛᴇ: Tʜɪs ғɪʟᴇs ᴡɪʟʟ ʙᴇ ᴅᴇʟᴇᴛᴇ ɪɴ {time} ᴛᴏ ᴀᴠᴏɪᴅ ᴄᴏᴘʏʀɪɢʜᴛs. Sᴀᴠᴇ ᴛʜᴇ ғɪʟᴇs ᴛᴏ sᴏᴍᴇᴡʜᴇʀᴇ ᴇʟsᴇ")
+        vp = await message.reply(f"⚠️ <b>Note:</b> These files will be auto-deleted in <b>{time}</b> to prevent copyright infringement. Please forward or download them immediately!")
         await asyncio.sleep(PM_FILE_DELETE_TIME)
-        buttons = [[InlineKeyboardButton('ɢᴇᴛ ғɪʟᴇs ᴀɢᴀɪɴ', callback_data=f"get_del_send_all_files#{grp_id}#{key}")]] 
+        buttons = [[InlineKeyboardButton("🚀 Get Files Again", callback_data=f"get_del_send_all_files#{grp_id}#{key}")]] 
         await client.delete_messages(
             chat_id=message.chat.id,
             message_ids=file_ids + [total_files.id]
         )
-        await vp.edit("Tʜᴇ ғɪʟᴇ ʜᴀs ʙᴇᴇɴ ɢᴏɴᴇ ! Cʟɪᴄᴋ ɢɪᴠᴇɴ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪᴛ ᴀɢᴀɪɴ.", reply_markup=InlineKeyboardMarkup(buttons))
+        await vp.edit("🗑️ <b>Files Auto-Deleted!</b>\n\nTo protect against copyright, the files were removed. Click below to generate new delivery links.", reply_markup=InlineKeyboardMarkup(buttons))
         return
 
     parts = mc.split("_", 2)
@@ -213,17 +222,17 @@ async def start(client, message):
     file_id = parts[-1]
     files_ = await get_file_details(file_id)
     if not files_:
-        return await message.reply('No Such File Exist!')
+        return await message.reply('⚠️ <b>File Not Found!</b>\n\n<blockquote>Could not locate this specific file ID in the database.</blockquote>')
     files = files_
     settings = await get_settings(int(grp_id))
     if type_ != 'shortlink' and settings['shortlink'] and not await is_premium(message.from_user.id, client):
         link = await get_shortlink(settings['url'], settings['api'], f"https://t.me/{temp.U_NAME}?start=shortlink_{grp_id}_{file_id}")
         btn = [[
-            InlineKeyboardButton("♻️ Get File ♻️", url=link)
+            InlineKeyboardButton("🔗 Get File", url=link)
         ],[
             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])
         ]]
-        await message.reply(f"[{get_size(files['file_size'])}] {files['file_name']}\n\nYour file is ready, Please get using this link. 👍", reply_markup=InlineKeyboardMarkup(btn), protect_content=True)
+        await message.reply(f"📁 <b>{files['file_name']}</b>\n⚖️ <b>Size:</b> <code>{get_size(files['file_size'])}</code>\n\n✨ Your file is ready! Please access it using the secure link below. 👇", reply_markup=InlineKeyboardMarkup(btn), protect_content=True)
         return
             
     CAPTION = settings['caption']
@@ -232,15 +241,24 @@ async def start(client, message):
         file_size = get_size(files['file_size']),
         file_caption=files['caption']
     )
+    user_watchlist = await db.get_watchlist(message.from_user.id)
+    user_favorites = await db.get_favorites(message.from_user.id)
+    f_id_str = str(file_id)
+    watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{f_id_str}") if f_id_str in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
+    fav_btn = InlineKeyboardButton("💔 Remove Favorites", callback_data=f"del_fav#{f_id_str}") if f_id_str in user_favorites else InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{f_id_str}")
     if IS_STREAM:
         btn = [[
-            InlineKeyboardButton("✛ ᴡᴀᴛᴄʜ & ᴅᴏᴡɴʟᴏᴀᴅ ✛", callback_data=f"stream#{file_id}")
+            InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
         ],[
-            InlineKeyboardButton('⁉️ ᴄʟᴏsᴇ ⁉️', callback_data='close_data')
+            watch_btn, fav_btn
+        ],[
+            InlineKeyboardButton("✖️ Close", callback_data="close_data")
         ]]
     else:
         btn = [[
-            InlineKeyboardButton('⁉️ ᴄʟᴏsᴇ ⁉️', callback_data='close_data')
+            watch_btn, fav_btn
+        ],[
+            InlineKeyboardButton("✖️ Close", callback_data="close_data")
         ]]
     vp = await client.send_cached_media(
         chat_id=message.from_user.id,
@@ -250,23 +268,23 @@ async def start(client, message):
         reply_markup=InlineKeyboardMarkup(btn)
     )
     time = get_readable_time(PM_FILE_DELETE_TIME)
-    msg = await vp.reply(f"Nᴏᴛᴇ: Tʜɪs ᴍᴇssᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴅᴇʟᴇᴛᴇ ɪɴ {time} ᴛᴏ ᴀᴠᴏɪᴅ ᴄᴏᴘʏʀɪɢʜᴛs. Sᴀᴠᴇ ᴛʜᴇ ғɪʟᴇ ᴛᴏ sᴏᴍᴇᴡʜᴇʀᴇ ᴇʟsᴇ")
+    msg = await vp.reply(f"⚠️ <b>Note:</b> This file will be auto-deleted in <b>{time}</b> to prevent copyright infringement. Please forward or download it immediately!")
     await asyncio.sleep(PM_FILE_DELETE_TIME)
     btns = [[
-        InlineKeyboardButton('ɢᴇᴛ ғɪʟᴇ ᴀɢᴀɪɴ', callback_data=f"get_del_file#{grp_id}#{file_id}")
+        InlineKeyboardButton("🚀 Get File Again", callback_data=f"get_del_file#{grp_id}#{file_id}")
     ]]
     await msg.delete()
     await vp.delete()
-    await vp.reply("Tʜᴇ ғɪʟᴇ ʜᴀs ʙᴇᴇɴ ɢᴏɴᴇ ! Cʟɪᴄᴋ ɢɪᴠᴇɴ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪᴛ ᴀɢᴀɪɴ.", reply_markup=InlineKeyboardMarkup(btns))
+    await vp.reply("🗑️ <b>File Auto-Deleted!</b>\n\nTo protect against copyright, this file was removed. Click below to generate a new delivery link.", reply_markup=InlineKeyboardMarkup(btns))
 
 
 @Client.on_message(filters.command('link'))
 async def link(bot, message):
     msg = message.reply_to_message
     if not msg:
-        return await message.reply('Reply to a media file.')
+        return await message.reply('⚠️ <b>Missing Reply!</b>\n\n<blockquote>Please reply directly to a video or document to generate its streaming link.</blockquote>')
         
-    m=await message.reply('Processing.....')
+    m=await message.reply('🔄 <b>Processing Media...</b>\n\n<blockquote>⏳ Generating stream and fast download links, please wait...</blockquote>')
     try:
         media = getattr(msg, msg.media.value)
         vidking_url = None
@@ -294,21 +312,29 @@ async def link(bot, message):
         bin_msg = await bot.send_cached_media(chat_id=BIN_CHANNEL, file_id=media.file_id)
         watch = f"{URL}watch/{bin_msg.id}"
         download = f"{URL}download/{bin_msg.id}"
+        f_id_str = str(media._id)
+        user_watchlist = await db.get_watchlist(message.from_user.id)
+        user_favorites = await db.get_favorites(message.from_user.id)
+        watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{f_id_str}") if f_id_str in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
+        fav_btn = InlineKeyboardButton("💔 Remove Favorites", callback_data=f"del_fav#{f_id_str}") if f_id_str in user_favorites else InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{f_id_str}")
         btn = []
         if vidking_url:
             btn.append([
-                InlineKeyboardButton("🌐 Smart Player 🌐", url=vidking_url)
+                InlineKeyboardButton("🌐 Smart Player", url=vidking_url)
             ])
         btn.append([
-            InlineKeyboardButton("ᴡᴀᴛᴄʜ ᴏɴʟɪɴᴇ", url=watch),
-            InlineKeyboardButton("ꜰᴀsᴛ ᴅᴏᴡɴʟᴏᴀᴅ", url=download)
+            InlineKeyboardButton("🎬 Watch Online", url=watch),
+            InlineKeyboardButton("⚡ Fast Download", url=download)
         ])
         btn.append([
-            InlineKeyboardButton('❌ ᴄʟᴏsᴇ ❌', callback_data='close_data')
+            watch_btn, fav_btn
         ])
-        await m.edit('Here are your links:', reply_markup=InlineKeyboardMarkup(btn))
+        btn.append([
+            InlineKeyboardButton('✖️ Close', callback_data='close_data')
+        ])
+        await m.edit('⚡ <b>Here are your instant streaming and download links:</b>', reply_markup=InlineKeyboardMarkup(btn))
     except Exception as e:
-        await m.edit(f'An error occurred: {e}')
+        await m.edit(f'❌ <b>An error occurred:</b> <code>{e}</code>')
 
 
 @Client.on_message(filters.command('index_channels'))
@@ -319,7 +345,7 @@ async def channels_info(bot, message):
         return
     ids = INDEX_CHANNELS
     if not ids:
-        return await message.reply("Not set INDEX_CHANNELS")
+        return await message.reply("⚠️ <b>Configuration Missing!</b>\n\n<blockquote><code>INDEX_CHANNELS</code> variable is not configured in settings.</blockquote>")
     text = '**Indexed Channels:**\n\n'
     for id in ids:
         chat = await bot.get_chat(id)
@@ -354,18 +380,18 @@ async def stats(bot, message):
 
 async def get_grp_stg(group_id):
     btn = [[
-        InlineKeyboardButton('Shortlink Settings', callback_data=f'shortlink_menu#{group_id}'),
-        InlineKeyboardButton('IMDb Settings', callback_data=f'imdb_menu#{group_id}')
+        InlineKeyboardButton("🔗 Shortlink", callback_data=f"shortlink_menu#{group_id}"),
+        InlineKeyboardButton("🎬 IMDb Poster", callback_data=f"imdb_menu#{group_id}")
     ],[
-        InlineKeyboardButton('Welcome Settings', callback_data=f'welcome_menu#{group_id}'),
-        InlineKeyboardButton('Caption Settings', callback_data=f'caption_menu#{group_id}')
+        InlineKeyboardButton("👋 Welcome", callback_data=f"welcome_menu#{group_id}"),
+        InlineKeyboardButton("📝 Caption", callback_data=f"caption_menu#{group_id}")
     ],[
-        InlineKeyboardButton('Auto Delete Settings', callback_data=f'auto_delete_menu#{group_id}'),
-        InlineKeyboardButton('Tutorial Settings', callback_data=f'tutorial_setgs#{group_id}')
+        InlineKeyboardButton("⏰ Auto Delete", callback_data=f"auto_delete_menu#{group_id}"),
+        InlineKeyboardButton("📖 Tutorial", callback_data=f"tutorial_setgs#{group_id}")
     ],[
-        InlineKeyboardButton('Miscellaneous Settings', callback_data=f'misc_menu#{group_id}')
+        InlineKeyboardButton("⚙️ Miscellaneous", callback_data=f"misc_menu#{group_id}")
     ],[
-        InlineKeyboardButton('Close', callback_data='close_data')
+        InlineKeyboardButton("✖️ Close", callback_data="close_data")
     ]]
     return btn
     
@@ -374,27 +400,26 @@ async def settings(client, message):
     group_id = message.chat.id
     if message.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         if not await is_check_admin(client, group_id, message.from_user.id):
-            return await message.reply_text('You not admin in this group.')
+            return await message.reply_text("⚠️ <b>You must be an admin in this group to use settings!</b>")
         btn = [[
-            InlineKeyboardButton("Open Here", callback_data='open_group_settings')
-        ],[
-            InlineKeyboardButton("Open In PM", callback_data='open_pm_settings')
+            InlineKeyboardButton("📌 Open Here", callback_data="open_group_settings"),
+            InlineKeyboardButton("💬 Open In PM", callback_data="open_pm_settings")
         ]]
-        await message.reply_text('Where do you want to open the settings menu?', reply_markup=InlineKeyboardMarkup(btn))
+        await message.reply_text("⚙️ <b>Group Settings Manager</b>\n\nWhere would you like to open the configuration panel? 👇", reply_markup=InlineKeyboardMarkup(btn))
     elif message.chat.type == enums.ChatType.PRIVATE:
         cons = await db.get_connections(message.from_user.id)
         if not cons:
-            return await message.reply_text("No groups found! Use this command group and open in PM")
+            return await message.reply_text("⚠️ <b>No Connected Groups Found!</b>\n\nPlease use the <code>/settings</code> or <code>/connect</code> command directly inside your group first!")
         buttons = []
         for con in cons:
             try:
                 chat = await client.get_chat(con)
                 buttons.append(
-                    [InlineKeyboardButton(text=chat.title, callback_data=f'back_setgs#{chat.id}')]
+                    [InlineKeyboardButton(text=f"📁 {chat.title}", callback_data=f"back_setgs#{chat.id}")]
                 )
             except:
                 pass
-        await message.reply_text('Select the group whose settings you want to change.\n\nIf your group not showing here? Use this command in your group and open in PM or send <code>/connect</code> command in your group.', reply_markup=InlineKeyboardMarkup(buttons))
+        await message.reply_text("⚙️ <b>Connected Groups Panel</b>\n\nSelect the group whose settings you want to modify below:\n\n<i>If your group is not listed, use <code>/connect</code> inside your group first.</i> 👇", reply_markup=InlineKeyboardMarkup(buttons))
 
 
 @Client.on_message(filters.command('connect'))
@@ -402,17 +427,17 @@ async def connect(client, message):
     if message.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         group_id = message.chat.id
         await db.add_connect(group_id, message.from_user.id)
-        await message.reply_text('Successfully connected this group to PM, now you can manage your group using /settings inside your PM')
+        await message.reply_text("✅ <b>Group Successfully Connected!</b>\n\nYou can now manage all settings for this group directly inside your PM using <code>/settings</code>.")
     elif message.chat.type == enums.ChatType.PRIVATE:
         if len(message.command) > 1:
             group_id = message.command[1]
             if not await is_check_admin(client, int(group_id), message.from_user.id):
-                return await message.reply_text('You not admin in this group.')
+                return await message.reply_text("⚠️ <b>You must be an admin in this group to connect it!</b>")
             chat = await client.get_chat(int(group_id))
             await db.add_connect(int(group_id), message.from_user.id)
-            await message.reply_text(f'Successfully connected {chat.title} group to PM')
+            await message.reply_text(f"✅ <b>Successfully connected group:</b> <code>{chat.title}</code> to your PM!")
         else:
-            await message.reply_text('Usage: /connect group_id\nor use /connect in group')
+            await message.reply_text("ℹ️ <b>Usage:</b> <code>/connect group_id</code>\n<i>Or simply use <code>/connect</code> directly inside your group!</i>")
 
 
 @Client.on_message(filters.command('delete'))
@@ -424,13 +449,12 @@ async def delete_file(bot, message):
     try:
         query = message.text.split(" ", 1)[1]
     except:
-        return await message.reply_text("Command Incomplete!\nUsage: /delete query")
+        return await message.reply_text("⚠️ <b>Command Incomplete!</b>\n\nℹ️ <b>Usage:</b> <code>/delete query</code>")
     btn = [[
-        InlineKeyboardButton("YES", callback_data=f"delete_{query}")
-    ],[
-        InlineKeyboardButton("CLOSE", callback_data="close_data")
+        InlineKeyboardButton("✅ Yes, Delete", callback_data=f"delete_{query}"),
+        InlineKeyboardButton("✖️ Close", callback_data="close_data")
     ]]
-    await message.reply_text(f"Do you want to delete all: {query} ?", reply_markup=InlineKeyboardMarkup(btn))
+    await message.reply_text(f"🗑️ <b>Delete Confirmation</b>\n\nAre you sure you want to delete all files matching: <code>{query}</code> from the database?", reply_markup=InlineKeyboardMarkup(btn))
  
 
 
@@ -438,15 +462,15 @@ async def delete_file(bot, message):
 async def img_2_link(bot, message):
     reply_to_message = message.reply_to_message
     if not reply_to_message:
-        return await message.reply('Reply to any photo')
+        return await message.reply('⚠️ <b>Missing Photo Reply!</b>\n\n<blockquote>Please reply to an image to upload it to Telegraph.</blockquote>')
     file = reply_to_message.photo
     if file is None:
-        return await message.reply('Invalid media.')
+        return await message.reply('❌ <b>Invalid Media!</b>\n\n<blockquote>Please reply to a valid photo or PNG/JPG image.</blockquote>')
     text = await message.reply_text(text="ᴘʀᴏᴄᴇssɪɴɢ....")   
     path = await reply_to_message.download()  
     response = upload_image(path)
     if not response:
-         await text.edit_text(text="Upload failed!")
+         await text.edit_text(text="❌ <b>Upload Failed!</b>\n\n<blockquote>Could not upload image to Telegraph. Please try again.</blockquote>")
          return    
     try:
         os.remove(path)
@@ -459,39 +483,49 @@ async def ping(client, message):
     start_time = monotonic()
     msg = await message.reply("👀")
     end_time = monotonic()
-    await msg.edit(f'{round((end_time - start_time) * 1000)} ms')
+    await msg.edit(f'⚡ <b>Pong! Server Latency:</b> <code>{round((end_time - start_time) * 1000)} ms</code>')
+    
+
+@Client.on_message(filters.command(['watchlist', 'watch']) & filters.private)
+async def watchlist_cmd(client, message):
+    await render_list_page(client, message, message.from_user.id, list_type="watchlist", page=0, edit=False)
+
+
+@Client.on_message(filters.command(['favorites', 'fav', 'favorite']) & filters.private)
+async def favorites_cmd(client, message):
+    await render_list_page(client, message, message.from_user.id, list_type="favorites", page=0, edit=False)
     
 
 @Client.on_message(filters.command('myplan') & filters.private)
 async def myplan(client, message):
     if not IS_PREMIUM:
-        return await message.reply('Premium feature was disabled by admin')
+        return await message.reply('⚠️ <b>Premium features are currently disabled by admin.</b>')
     mp = await db.get_plan(message.from_user.id)
     if not await is_premium(message.from_user.id, client):
         btn = [[
-            InlineKeyboardButton('Activate Trial', callback_data='activate_trial'),
-            InlineKeyboardButton('Activate Plan', callback_data='activate_plan')
+            InlineKeyboardButton("🎁 Activate Trial", callback_data="activate_trial"),
+            InlineKeyboardButton("💎 Activate Plan", callback_data="activate_plan")
         ]]
-        return await message.reply('You dont have any premium plan, please use /plan to activate plan', reply_markup=InlineKeyboardMarkup(btn))
-    ex = mp.get('expire').strftime('%Y.%m.%d %H:%M:%S') if mp.get('expire') else 'Unknow'
-    await message.reply(f"You activated {mp.get('plan') or 'Unknow plan'}\nExpire: {ex}")
+        return await message.reply("⚠️ <b>No Active Premium Plan Found!</b>\n\nActivate a trial or subscription below to unlock all VIP features:", reply_markup=InlineKeyboardMarkup(btn))
+    ex = mp.get('expire').strftime('%Y-%m-%d %H:%M:%S') if mp.get('expire') else 'Unknown'
+    await message.reply(f"💎 <b>Active Subscription:</b> <code>{mp.get('plan') or 'Unknown Plan'}</code>\n⏳ <b>Expires On:</b> <code>{ex}</code>")
 
 
 @Client.on_message(filters.command('plan') & filters.private)
 async def plan(client, message):
     if not IS_PREMIUM:
-        return await message.reply('Premium feature was disabled by admin')
+        return await message.reply('⚠️ <b>Premium features are currently disabled by admin.</b>')
     btn = [[
-        InlineKeyboardButton('Activate Trial', callback_data='activate_trial')
+        InlineKeyboardButton("🎁 Activate Trial", callback_data="activate_trial")
     ],[
-        InlineKeyboardButton('Activate Plan', callback_data='activate_plan')
+        InlineKeyboardButton("💎 Activate Plan", callback_data="activate_plan")
     ]]
     plans_list = []
     for days, details in PREMIUM_PLANS.items():
         name = get_plan_name(days)
         currency = details[0]
         price = details[1]
-        plans_list.append(f"▫️ {name} — {currency} {price}")
+        plans_list.append(f"• 💎 <b>{name}</b> — <code>{currency} {price}</code>")
     PLANS_BLOCK = "\n".join(plans_list)
     await message.reply(script.PLAN_TXT.format(PLANS_BLOCK, OWNER_USERNAME), reply_markup=InlineKeyboardMarkup(btn))
 
@@ -499,21 +533,21 @@ async def plan(client, message):
 @Client.on_message(filters.command('add_prm') & filters.user(ADMINS))
 async def add_prm(bot, message):
     if not IS_PREMIUM:
-        return await message.reply('Premium feature was disabled')
+        return await message.reply('⚠️ <b>Feature Disabled!</b>\n\n<blockquote>VIP Premium features are currently turned off in this bot.</blockquote>')
     try:
         _, user_id, d = message.text.split(' ')
     except:
-        return await message.reply('Usage: /add_prm user_id 1d')
+        return await message.reply('⚠️ <b>Invalid Syntax!</b>\n\n<blockquote><b>Usage:</b> <code>/add_prm user_id 30d</code> (Supported units: s, m, h, d, w, y)</blockquote>')
     try:
         d = int(d[:-1])
     except:
-        return await message.reply('Not valid days, use: 1d, 7d, 30d, 365d, etc...')
+        return await message.reply('⚠️ <b>Invalid Time Format!</b>\n\n<blockquote>Please use formats like: <code>1h</code>, <code>1d</code>, <code>7d</code>, <code>30d</code>, or <code>365d</code>.</blockquote>')
     try:
         user = await bot.get_users(int(user_id))
     except Exception as e:
-        return await message.reply(f'Error: {e}')
+        return await message.reply(f"⚠️ <b>Error:</b> <code>{e}</code>")
     if user.id in ADMINS:
-        return await message.reply('ADMINS is already premium')
+        return await message.reply("👑 <b>Admin account already has unlimited premium access!</b>")
     if not await is_premium(user.id, bot):
         mp = await db.get_plan(user.id)
         ex = datetime.now() + timedelta(days=d)
@@ -521,41 +555,40 @@ async def add_prm(bot, message):
         mp['plan'] = get_plan_name(d)
         mp['premium'] = True
         await db.update_plan(user.id, mp)
-        await message.reply(f"Given premium to {user.mention}\nExpire: {ex.strftime('%Y.%m.%d %H:%M:%S')}")
+        await message.reply(f"💎 <b>Granted Premium Access!</b>\n\n👤 <b>User:</b> {user.mention}\n⏳ <b>Expires:</b> <code>{ex.strftime('%Y-%m-%d %H:%M:%S')}</code>")
         try:
-            await bot.send_message(user.id, f"Your now premium user\nExpire: {ex.strftime('%Y.%m.%d %H:%M:%S')}")
+            await bot.send_message(user.id, f"🎉 <b>Congratulations! You are now a VIP Premium member!</b>\n\n⏳ <b>Expires:</b> <code>{ex.strftime('%Y-%m-%d %H:%M:%S')}</code>")
         except:
             pass
     else:
-        await message.reply(f"{user.mention} is already premium user")
-
+        await message.reply(f"ℹ️ {user.mention} is already an active premium member.")
 
 
 @Client.on_message(filters.command('rm_prm') & filters.user(ADMINS))
 async def rm_prm(bot, message):
     if not IS_PREMIUM:
-        return await message.reply('Premium feature was disabled')
+        return await message.reply("⚠️ <b>Premium features are currently disabled.</b>")
     try:
         _, user_id = message.text.split(' ')
     except:
-        return await message.reply('Usage: /rm_prm user_id')
+        return await message.reply("ℹ️ <b>Usage:</b> <code>/rm_prm user_id</code>")
     try:
         user = await bot.get_users(int(user_id))
     except Exception as e:
-        return await message.reply(f'Error: {e}')
+        return await message.reply(f"⚠️ <b>Error:</b> <code>{e}</code>")
     if user.id in ADMINS:
-        return await message.reply('ADMINS is already premium')
+        return await message.reply("👑 <b>Cannot remove premium access from an Admin!</b>")
     if not await is_premium(user.id, bot):
-        await message.reply(f"{user.mention} is not premium user")
+        await message.reply(f"ℹ️ {user.mention} is not an active premium user.")
     else:
         mp = await db.get_plan(user.id)
         mp['expire'] = ''
         mp['plan'] = ''
         mp['premium'] = False
         await db.update_plan(user.id, mp)
-        await message.reply(f"{user.mention} is no longer premium user")
+        await message.reply(f"🗑 <b>Removed premium plan from</b> {user.mention}.")
         try:
-            await bot.send_message(user.id, "Your premium plan was removed by admin")
+            await bot.send_message(user.id, "⚠️ <b>Your VIP Premium subscription was removed by an administrator.</b>")
         except:
             pass
 
@@ -563,16 +596,16 @@ async def rm_prm(bot, message):
 @Client.on_message(filters.command('prm_list') & filters.user(ADMINS))
 async def prm_list(bot, message):
     if not IS_PREMIUM:
-        return await message.reply('Premium feature was disabled')
-    tx = await message.reply('Getting list of premium users')
+        return await message.reply("⚠️ <b>Premium features are currently disabled.</b>")
+    tx = await message.reply("🔄 <b>Fetching active premium subscribers list...</b>")
     pr = [i['id'] for i in await db.get_premium_users() if i['status']['premium']]
-    t = 'premium users saved in database are:\n\n'
+    t = "💎 <b>Active VIP Premium Subscribers:</b>\n\n"
     for p in pr:
         try:
             u = await bot.get_users(p)
-            t += f"{u.mention} : {p}\n"
+            t += f"• 👤 {u.mention} — <code>{p}</code>\n"
         except:
-            t += f"{p}\n"
+            t += f"• 🆔 <code>{p}</code>\n"
     await tx.edit_text(t)
 
 
@@ -582,7 +615,7 @@ async def prm_list(bot, message):
 @Client.on_message(filters.command('request'))
 async def request_cmd(bot, message):
     if len(message.command) < 2:
-        return await message.reply("⚠️ Please provide a movie/tv show name.\n\nExample: `/request Interstellar`")
+        return await message.reply("⚠️ <b>Missing Request Query!</b>\n\nℹ️ <b>Example:</b> <code>/request Interstellar</code>")
         
     movie_name = message.text.split(" ", 1)[1]
     req_id = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
@@ -591,16 +624,16 @@ async def request_cmd(bot, message):
     
     btn = [[
         InlineKeyboardButton("✅ Completed", callback_data=f"req_completed#{req_id}"),
-        InlineKeyboardButton("❌ Reject", callback_data=f"req_reject#{req_id}")
+        InlineKeyboardButton("✖️ Reject", callback_data=f"req_reject#{req_id}")
     ]]
     
     try:
         await bot.send_message(
             REQUESTS_CHANNEL, 
-            f"#Request\n\n★ User: {message.from_user.mention}\n★ User ID: `{message.from_user.id}`\n\n★ Message: {movie_name}",
+            f"📌 <b>New Request</b>\n\n👤 <b>User:</b> {message.from_user.mention}\n🆔 <b>User ID:</b> <code>{message.from_user.id}</code>\n\n📝 <b>Query:</b> <code>{movie_name}</code>",
             reply_markup=InlineKeyboardMarkup(btn)
         )
-        await message.reply("✅ Your request has been sent successfully!")
+        await message.reply("✅ <b>Your request has been submitted successfully to the moderators!</b>")
     except Exception as e:
-        await message.reply(f"Failed to send request. Error: {e}")
+        await message.reply(f"⚠️ <b>Failed to send request. Error:</b> <code>{e}</code>")
 

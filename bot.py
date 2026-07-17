@@ -51,14 +51,14 @@ class Bot(Client):
         if await db.get_repair_mode():
             if message.from_user and message.from_user.id in ADMINS:
                 return
-            await message.reply("Bot is currently under maintenance / repair mode.")
+            await message.reply("🛠️ <b>System Under Maintenance!</b>\n\n<blockquote>⚙️ Our bot is currently undergoing scheduled maintenance or repair mode. We will be back online shortly!</blockquote>")
             raise StopPropagation
             
     async def _repair_mode_cb_handler(self, client: Client, query: types.CallbackQuery):
         if await db.get_repair_mode():
             if query.from_user and query.from_user.id in ADMINS:
                 return
-            await query.answer("Bot is currently under maintenance / repair mode.", show_alert=True)
+            await query.answer("🛠️ System Under Maintenance! Our bot is currently undergoing scheduled repairs.", show_alert=True)
             raise StopPropagation
 
     async def _listener_handler(self, client: Client, message: types.Message):
@@ -105,7 +105,7 @@ class Bot(Client):
             with open("restart.txt") as file:
                 chat_id, msg_id = map(int, file)
             try:
-                await self.edit_message_text(chat_id=chat_id, message_id=msg_id, text='Restarted Successfully!')
+                await self.edit_message_text(chat_id=chat_id, message_id=msg_id, text="✅ <b>Bot Restarted Successfully!</b>\n\n<blockquote>🚀 All modules and plugins reloaded cleanly.</blockquote>")
             except:
                 pass
             os.remove('restart.txt')

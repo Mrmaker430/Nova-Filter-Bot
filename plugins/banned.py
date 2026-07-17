@@ -20,23 +20,26 @@ disabled_group=filters.create(disabled_chat)
 @Client.on_message(filters.private & banned_user & filters.incoming)
 async def is_user_banned(bot, message):
     buttons = [[
-        InlineKeyboardButton('Support Group', url=SUPPORT_LINK)
+        InlineKeyboardButton('💬 Support Group', url=SUPPORT_LINK)
     ]]
-    reply_markup=InlineKeyboardMarkup(buttons)
+    reply_markup = InlineKeyboardMarkup(buttons)
     ban = await db.get_ban_status(message.from_user.id)
-    await message.reply(f'Sorry {message.from_user.mention},\nMy owner you are banned to use me! If you want to know more about it contact support group.\nReason - <code>{ban["ban_reason"]}</code>',
-                        reply_markup=reply_markup)
+    await message.reply(
+        f'🚫 <b>Account Restricted!</b>\n\n<blockquote>Hello {message.from_user.mention}, you have been restricted from using this bot.\n\n⚠️ <b>Reason:</b> <code>{ban["ban_reason"]}</code></blockquote>\n\n💬 If you believe this is a mistake, please contact our support team below:',
+        reply_markup=reply_markup
+    )
 
 @Client.on_message(filters.group & disabled_group & filters.incoming)
 async def is_group_disabled(bot, message):
     buttons = [[
-        InlineKeyboardButton('Support Group', url=SUPPORT_LINK)
+        InlineKeyboardButton('💬 Support Group', url=SUPPORT_LINK)
     ]]
-    reply_markup=InlineKeyboardMarkup(buttons)
+    reply_markup = InlineKeyboardMarkup(buttons)
     vazha = await db.get_chat(message.chat.id)
     k = await message.reply(
-        text=f"<b><u>Chat Not Allowed</u></b>\n\nMy owner has restricted me from working here! If you want to know more about it contact support group.\nReason - <code>{vazha['reason']}</code>",
-        reply_markup=reply_markup)
+        text=f"🚫 <b><u>Chat Not Allowed</u></b>\n\n<blockquote>My owner has restricted me from working in this group.\n\n⚠️ <b>Reason:</b> <code>{vazha['reason']}</code></blockquote>\n\n💬 For assistance, please join our support group below:",
+        reply_markup=reply_markup
+    )
     try:
         await k.pin()
     except:

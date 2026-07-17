@@ -105,7 +105,7 @@ if len(SECOND_FILES_DATABASE_URL) == 0:
 # Links
 SUPPORT_LINK = environ.get('SUPPORT_LINK', 'https://t.me/Nova_Filter_Official')
 UPDATES_LINK = environ.get('UPDATES_LINK', 'https://t.me/Nova_Filter_Official')
-FILMS_LINK = environ.get('FILMS_LINK', 'https://t.me/Cinema_Bay')
+FILMS_LINK = environ.get('FILMS_LINK', 'https://t.me/NovoFlix_Hub')
 TUTORIAL = environ.get("TUTORIAL", "https://t.me/Nova_Filter_Official")
 TUTORIAL_NAME = environ.get("TUTORIAL_NAME", "Tutorial")
 VERIFY_TUTORIAL = environ.get("VERIFY_TUTORIAL", "https://t.me/Nova_Filter_Official")

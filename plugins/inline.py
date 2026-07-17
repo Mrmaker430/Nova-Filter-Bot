@@ -17,7 +17,7 @@ async def inline_search(bot, query):
     if is_fsub:
         await query.answer(results=[],
                            cache_time=0,
-                           switch_pm_text="Join my Updates Channel :(",
+                           switch_pm_text="📢 Join Updates Channel First",
                            switch_pm_parameter="inline_fsub")
         return
 
@@ -26,14 +26,14 @@ async def inline_search(bot, query):
     if IS_VERIFY and not verify_status['is_verified'] and not await is_premium(query.from_user.id, bot):
         await query.answer(results=[],
                            cache_time=0,
-                           switch_pm_text="You're not verified today :(",
+                           switch_pm_text="🔒 Verification Required",
                            switch_pm_parameter="inline_verify")
         return
     
     if is_banned(query):
         await query.answer(results=[],
                            cache_time=0,
-                           switch_pm_text="You're banned user :(",
+                           switch_pm_text="🚫 Account Restricted",
                            switch_pm_parameter="start")
         return
 
@@ -57,11 +57,11 @@ async def inline_search(bot, query):
                 title=file['file_name'],
                 document_file_id=file['_id'],
                 caption=f_caption,
-                description=f'Size: {get_size(file["file_size"])}',
+                description=f'💾 Size: {get_size(file["file_size"])}',
                 reply_markup=reply_markup))
 
     if results:
-        switch_pm_text = f"Results - {total}"
+        switch_pm_text = f"🎬 Found {total} Results"
         if string:
             switch_pm_text += f' For: {string}'
         await query.answer(results=results,
@@ -71,7 +71,7 @@ async def inline_search(bot, query):
                         switch_pm_parameter="start",
                         next_offset=str(next_offset))
     else:
-        switch_pm_text = f'No Results'
+        switch_pm_text = f'❌ No Results Found'
         if string:
             switch_pm_text += f' For: {string}'
         await query.answer(results=[],
@@ -85,7 +85,7 @@ def get_reply_markup(s):
     buttons = [[
         InlineKeyboardButton('🔎 Search Again', switch_inline_query_current_chat=s or '')
     ],[
-        InlineKeyboardButton('⚡️ ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ ⚡️', url=UPDATES_LINK),
-        InlineKeyboardButton('💡 Support Group 💡', url=SUPPORT_LINK)
+        InlineKeyboardButton('📢 Updates Channel', url=UPDATES_LINK),
+        InlineKeyboardButton('💬 Support Group', url=SUPPORT_LINK)
     ]]
     return InlineKeyboardMarkup(buttons)
