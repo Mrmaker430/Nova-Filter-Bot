@@ -79,7 +79,11 @@ class script(object):
 🗣️ <b>Requested by</b>: {mention}
 ⚡ <b>Powered by</b>: <b>{group_title}</b>"""
 
-    FILE_CAPTION = """📁 <b>{file_name}</b>
+    FILE_CAPTION = """<b>‣ ɴᴀᴍᴇ : </b><i>{file_name}</i>
+
+<b>‣ ꜱɪᴢᴇ : </b>{file_size}
+
+<b>🍁 ʙʏ : <a href="https://t.me/cholochhitro">[ ᴄʜᴏʟᴏᴄʜʜɪᴛʀᴏ ]</a></b>
 
 <blockquote>⚠️ <i>Please click the ✖️ Close button below once you have saved or downloaded this file!</i></blockquote>"""
 
