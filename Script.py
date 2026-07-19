@@ -18,11 +18,11 @@ class script(object):
 
     MY_OWNER_TXT = """👨‍💻 <b>Developer & Owner Details</b>
 
-<blockquote>🧑‍💻 <b>Lead Developer</b>: Hansaka Anuhas
-💬 <b>Telegram</b>: @Hansaka_Anuhas
+<blockquote>🧑‍💻 <b>Lead Developer</b>: Satya Jit
+💬 <b>Telegram</b>: @pArAd0X6
 🛠️ <b>Support</b>: Available 24/7 via Support Group</blockquote>"""
 
-    STATUS_TXT = """📊 <b>Nova Filter System Diagnostics</b>
+    STATUS_TXT = """📊 <b>System Diagnostics</b>
 
 <blockquote><b>👥 User & Group Metrics</b>
 • 👤 Total Users: <code>{}</code>
@@ -164,9 +164,9 @@ class script(object):
     
     SOURCE_TXT = """📂 <b>Open Source Repository</b>
 
-<blockquote>🛠️ <b>Project</b>: Nova Auto Filter Bot
-🔗 <b>Repository</b>: <a href="https://github.com/xHansaka-Anuhas/Nova-Filter-Bot">GitHub Repo</a>
-🧑‍💻 <b>Lead Developer</b>: @Hansaka_Anuhas</blockquote>"""
+<blockquote>🛠️ <b>Project</b>: Auto Filter Bot
+🔗 <b>Repository</b>: <a href="https://github.com/">GitHub Repo</a>
+🧑‍💻 <b>Lead Developer</b>: @pArAd0X6</blockquote>"""
 
 
     NEW_ADDED_TEMPLATE = """✅ <b>New Content Added</b>
