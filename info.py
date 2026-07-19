@@ -39,10 +39,10 @@ BOT_ID = BOT_TOKEN.split(":")[0]
 PORT = int(environ.get('PORT', '80'))
 
 # Upload your images to "postimages.org" and get direct link
-PICS = (environ.get('PICS', 'https://i.postimg.cc/8C15CQ5y/1.png https://i.postimg.cc/gcNtrv0m/2.png https://i.postimg.cc/cHD71BBz/3.png https://i.postimg.cc/F1XYhY8q/4.png https://i.postimg.cc/1tNwGVxC/5.png https://i.postimg.cc/dtW30QpL/6.png https://i.postimg.cc/139dvs3c/7.png https://i.postimg.cc/QtXVtB8K/8.png https://i.postimg.cc/y8j8G1XV/9.png https://i.postimg.cc/zDF6KyJX/10.png https://i.postimg.cc/fyycVqzd/11.png https://i.postimg.cc/26ZBtBZr/13.png https://i.postimg.cc/PJn8nrWZ/14.png https://i.postimg.cc/cC7txyhz/15.png https://i.postimg.cc/kX9tjGXP/16.png https://i.postimg.cc/zXjH4NVb/17.png https://i.postimg.cc/sggGrLhn/18.png https://i.postimg.cc/y8pgYTh7/19.png')).split()
+PICS = (environ.get('PICS', 'https://i.ibb.co/PzZNZHF6/IMG-20251116-113905-254.jpg https://i.ibb.co/8npWSZ5T/pic.jpg')).split()
 
 # Bot Admins
-ADMINS = environ.get('ADMINS', '5493832202')
+ADMINS = environ.get('ADMINS', '1773034985')
 if len(ADMINS) == 0:
     logger.error('ADMINS is missing, exiting now')
     exit()
@@ -50,23 +50,23 @@ else:
     ADMINS = [int(admins) for admins in ADMINS.split()]
 
 # Channels
-INDEX_CHANNELS = [int(index_channels) if index_channels.startswith("-") else index_channels for index_channels in environ.get('INDEX_CHANNELS', '').split()]
+INDEX_CHANNELS = [int(index_channels) if index_channels.startswith("-") else index_channels for index_channels in environ.get('INDEX_CHANNELS', '-1002250750580 -1002640281126 -1002505289854 -1002453402856 -1002433218654 -1002357138941').split()]
 if len(INDEX_CHANNELS) == 0:
     logger.info('INDEX_CHANNELS is empty')
-LOG_CHANNEL = environ.get('LOG_CHANNEL', '')
+LOG_CHANNEL = environ.get('LOG_CHANNEL', '-1002732527335')
 if len(LOG_CHANNEL) == 0:
     logger.error('LOG_CHANNEL is missing, exiting now')
     exit()
 else:
     LOG_CHANNEL = int(LOG_CHANNEL)
-UPDATES_SEND_CHANNEL = environ.get('UPDATES_SEND_CHANNEL', '')
+UPDATES_SEND_CHANNEL = environ.get('UPDATES_SEND_CHANNEL', '-1003784139938')
 if len(UPDATES_SEND_CHANNEL) == 0:
     logger.info('UPDATES_SEND_CHANNEL is missing')
     UPDATES_SEND_CHANNEL = None
 else:
     UPDATES_SEND_CHANNEL = int(UPDATES_SEND_CHANNEL)
 
-REQUESTS_CHANNEL = environ.get('REQUESTS_CHANNEL', '')
+REQUESTS_CHANNEL = environ.get('REQUESTS_CHANNEL', '-1003717648037')
 if len(REQUESTS_CHANNEL) == 0:
     logger.info('REQUESTS_CHANNEL is missing, using LOG_CHANNEL')
     REQUESTS_CHANNEL = LOG_CHANNEL
@@ -74,7 +74,7 @@ else:
     REQUESTS_CHANNEL = int(REQUESTS_CHANNEL)
 
 # support group
-SUPPORT_GROUP = environ.get('SUPPORT_GROUP', '')
+SUPPORT_GROUP = environ.get('SUPPORT_GROUP', '-1003717648037')
 if len(SUPPORT_GROUP) == 0:
     SUPPORT_GROUP = None
     logger.warning('SUPPORT_GROUP is missing')
@@ -103,16 +103,16 @@ if len(SECOND_FILES_DATABASE_URL) == 0:
 
 
 # Links
-SUPPORT_LINK = environ.get('SUPPORT_LINK', 'https://t.me/Nova_Filter_Official')
-UPDATES_LINK = environ.get('UPDATES_LINK', 'https://t.me/Nova_Filter_Official')
-FILMS_LINK = environ.get('FILMS_LINK', 'https://t.me/NovoFlix_Hub')
-TUTORIAL = environ.get("TUTORIAL", "https://t.me/Nova_Filter_Official")
+SUPPORT_LINK = environ.get('SUPPORT_LINK', 'https://t.me/cholochhitrosupport')
+UPDATES_LINK = environ.get('UPDATES_LINK', 'https://t.me/')
+FILMS_LINK = environ.get('FILMS_LINK', 'https://t.me/cholochhitro')
+TUTORIAL = environ.get("TUTORIAL", "https://t.me/")
 TUTORIAL_NAME = environ.get("TUTORIAL_NAME", "Tutorial")
-VERIFY_TUTORIAL = environ.get("VERIFY_TUTORIAL", "https://t.me/Nova_Filter_Official")
+VERIFY_TUTORIAL = environ.get("VERIFY_TUTORIAL", "https://t.me/")
 
 # Bot settings
-TIME_ZONE = environ.get('TIME_ZONE', 'Asia/Colombo') # Replace your time zone
-DELETE_TIME = int(environ.get('DELETE_TIME', 3600)) # Add time in seconds
+TIME_ZONE = environ.get('TIME_ZONE', 'Asia/Kolkata') # Replace your time zone
+DELETE_TIME = int(environ.get('DELETE_TIME', 600)) # Add time in seconds
 CACHE_TIME = int(environ.get('CACHE_TIME', 300))
 MAX_BTN = int(environ.get('MAX_BTN', 8))
 LANGUAGES = [language.lower() for language in environ.get('LANGUAGES', 'hindi english telugu tamil kannada malayalam marathi punjabi').split()]
@@ -138,15 +138,15 @@ IMDB = is_enabled('IMDB', True)
 SPELL_CHECK = is_enabled("SPELL_CHECK", True)
 SHORTLINK = is_enabled('SHORTLINK', False)
 AUTO_FILTER = is_enabled('AUTO_FILTER', True)
-PM_SEARCH = is_enabled('PM_SEARCH', True)
+PM_SEARCH = is_enabled('PM_SEARCH', False)
 
 # bot string settings
-FORCE_SUB_CHANNELS = environ.get('FORCE_SUB_CHANNELS', '')  # For multiple channels, separate channel IDs with spaces. Example: "-100xxxxx -100xxxxx -100xxxxx"
-REQUEST_FORCE_SUB_CHANNEL = environ.get('REQUEST_FORCE_SUB_CHANNEL', '')
+FORCE_SUB_CHANNELS = environ.get('FORCE_SUB_CHANNELS', '-1002097884361')  # For multiple channels, separate channel IDs with spaces. Example: "-100xxxxx -100xxxxx -100xxxxx"
+REQUEST_FORCE_SUB_CHANNEL = environ.get('REQUEST_FORCE_SUB_CHANNEL', '-1003784139938')
 
 # for stream
 IS_STREAM = is_enabled('IS_STREAM', True)
-BIN_CHANNEL = environ.get("BIN_CHANNEL", "")
+BIN_CHANNEL = environ.get("BIN_CHANNEL", "-1002732527335")
 if len(BIN_CHANNEL) == 0:
     logger.error('BIN_CHANNEL is missing, exiting now')
     exit()
@@ -172,7 +172,7 @@ EFFECT_IDS = [effect for effect in environ.get('EFFECT_IDS', '510484124575518058
 
 # for Premium 
 IS_PREMIUM = is_enabled('IS_PREMIUM', True)
-OWNER_USERNAME = environ.get("OWNER_USERNAME", "Hansaka_Anuhas")
+OWNER_USERNAME = environ.get("OWNER_USERNAME", "pArAd0X6")
 PAYMENT_QR_CODE = "https://i.postimg.cc/4xmm21x5/qr-code.jpg" # add your payment qr code link, like upi qr code or any crypto qr code link
 PAYMENT_ID = "mypayment@id"  # add your payment id like upi id or crypto address
 
@@ -187,7 +187,7 @@ PAYMENT_TYPE = "UPI"  # can be changed to "Crypto (TRC20)" or "PayPal" or etc...
 
 
 # for TMDb
-TMDB_API_KEY = environ.get("TMDB_API_KEY", "")  # Get API key from here - https://www.themoviedb.org/settings/api
+TMDB_API_KEY = environ.get("TMDB_API_KEY", "98f215cdc731a595c9d36dadca08a1aa")  # Get API key from here - https://www.themoviedb.org/settings/api
 if len(TMDB_API_KEY) == 0:
     logger.info('TMDB_API_KEY is missing')
     TMDB_API_KEY = None
