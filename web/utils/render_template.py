@@ -11,7 +11,7 @@ webapp_template = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nova Filter Bot</title>
+    <title>চলচ্চিত্র 🎥✨</title>
     <meta name="description" content="Browse trending movies and TV shows. Find and download files instantly.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -564,7 +564,7 @@ webapp_template = """
 
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
-    <div class="nav-logo">Nova Filter Bot</div>
+    <div class="nav-logo">ᴄʜᴏʟᴏᴄʜʜɪᴛʀᴏ</div>
     <div class="nav-right">
         <button class="nav-search-toggle" id="searchToggle" onclick="openSearch()" title="Search">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -668,12 +668,12 @@ webapp_template = """
     <div class="footer-tagline">Your premium media discovery platform</div>
     <div class="footer-divider"></div>
     <div class="footer-links">
-        <a href="https://t.me/Nova_Filter_Official" class="footer-link" target="_blank">Telegram Channel</a>
-        <a href="https://t.me/Nova_Filter_Official" class="footer-link" target="_blank">Support</a>
+        <a href="https://t.me/cholochhitro" class="footer-link" target="_blank">Telegram Channel</a>
+        <a href="https://t.me/cholochhitrosupport" class="footer-link" target="_blank">Support</a>
         <a href="https://www.themoviedb.org" class="footer-link" target="_blank">TMDB</a>
     </div>
-    <div class="footer-copy">&copy; <span id="footerYear"></span> Nova Filter Bot. All rights reserved.</div>
-    <div class="footer-powered">Powered by <a href="https://t.me/Nova_Filter_Official" target="_blank">Nova Filter Bot</a></div>
+    <div class="footer-copy">&copy; <span id="footerYear"></span> Cholochhitro. All rights reserved.</div>
+    <div class="footer-powered">Powered by <a href="https://t.me/cholochhitro" target="_blank">ᴄʜᴏʟᴏᴄʜʜɪᴛʀᴏ</a></div>
     <div class="footer-tmdb">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
 </footer>
 
