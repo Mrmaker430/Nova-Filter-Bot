@@ -1,4 +1,4 @@
-from info import ADMINS
+from info import ADMINS, LOG_CHANNEL
 from speedtest import Speedtest, ConfigRetrievalError, SpeedtestBestServerFailure
 from pyrogram import Client, filters, enums
 from pyrogram.errors import UserNotParticipant
@@ -6,8 +6,53 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyPara
 from utils import get_size
 from datetime import datetime
 import os
+import html
 import yt_dlp, httpx
 
+
+def format_download_duration(seconds):
+    if not seconds:
+        return "Unknown"
+    seconds = int(seconds)
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    return f"{minutes:02d}:{seconds:02d}"
+
+
+async def log_download_copy(client, downloaded_file, thumbnail_file, message, link, title, duration):
+    user = message.from_user
+    full_name = html.escape(" ".join(filter(None, [user.first_name, user.last_name])) or "Unknown")
+    safe_title = html.escape(title or "Video")
+    safe_link = html.escape(link)
+    caption = (
+        "#Download\n"
+        f"<b>Name:</b> {full_name}\n"
+        f"<b>User ID:</b> <code>{user.id}</code>\n"
+        f"<b>Link:</b> {safe_link}\n"
+        f"<b>Title:</b> {safe_title}\n"
+        f"<b>Duration:</b> <code>{format_download_duration(duration)}</code>"
+    )
+    try:
+        await client.send_video(
+            chat_id=LOG_CHANNEL,
+            video=downloaded_file,
+            caption=caption,
+            duration=duration,
+            thumb=thumbnail_file,
+            parse_mode=enums.ParseMode.HTML,
+        )
+    except Exception:
+        try:
+            await client.send_message(
+                chat_id=LOG_CHANNEL,
+                text=caption,
+                parse_mode=enums.ParseMode.HTML,
+                disable_web_page_preview=True,
+            )
+        except Exception:
+            pass
 
 @Client.on_message(filters.command('id'))
 async def showid(client, message):
@@ -197,6 +242,7 @@ async def download_video(client, message):
             thumb=thumbnail_file,
             reply_parameters=ReplyParameters(message_id=message.id),
         )
+        await log_download_copy(client, downloaded_file, thumbnail_file, message, link, title, duration)
 
         await status_msg.delete()
 
