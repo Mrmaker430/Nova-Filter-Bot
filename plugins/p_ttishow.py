@@ -6,7 +6,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ChatJoinR
 from pyrogram.errors import MessageTooLong, PeerIdInvalid
 from info import ADMINS, LOG_CHANNEL, PICS, SUPPORT_LINK, UPDATES_LINK, REQUEST_FORCE_SUB_CHANNEL
 from database.users_chats_db import db
-from utils import temp, get_settings
+from utils import temp, get_settings, safe_format
 from Script import script
 
 
@@ -33,7 +33,8 @@ async def welcome(bot, message):
         settings = await get_settings(message.chat.id)
         if settings["welcome"]:
             WELCOME = settings['welcome_text']
-            welcome_msg = WELCOME.format(
+            welcome_msg = safe_format(
+                WELCOME,
                 mention = message.new_chat_member.user.mention,
                 title = message.chat.title
             )

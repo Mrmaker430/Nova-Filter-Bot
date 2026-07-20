@@ -164,8 +164,10 @@ class Database:
     async def get_settings(self, id):
         chat = await self.grp.find_one({'id': int(id)})
         if chat:
-            return chat.get('settings', self.default_setgs)
-        return self.default_setgs
+            settings = self.default_setgs.copy()
+            settings.update(chat.get('settings', {}))
+            return settings
+        return self.default_setgs.copy()
     
     async def disable_chat(self, chat, reason="No Reason"):
         chat_status=dict(
