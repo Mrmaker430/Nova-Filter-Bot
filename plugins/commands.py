@@ -31,6 +31,22 @@ async def repair_mode_cmd(client, message):
         await db.set_repair_mode(False)
         await message.reply_text("Repair Mode deactivated successfully.")
 
+@Client.on_message(filters.command("movie_update") & filters.incoming)
+async def movie_update_cmd(client, message):
+    if not message.from_user or message.from_user.id not in ADMINS:
+        return await message.reply_text("You are not authorized to use this command.")
+
+    args = message.text.split()
+    if len(args) != 2 or args[1].lower() not in ["on", "off"]:
+        return await message.reply_text("Usage: `/movie_update on` or `/movie_update off`")
+
+    if args[1].lower() == "on":
+        await db.set_movie_update_status(True)
+        await message.reply_text("Movie updates activated successfully.")
+    else:
+        await db.set_movie_update_status(False)
+        await message.reply_text("Movie updates deactivated successfully.")
+
 @Client.on_message(filters.command("start") & filters.incoming)
 async def start(client, message):
         
