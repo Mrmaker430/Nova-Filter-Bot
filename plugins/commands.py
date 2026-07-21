@@ -10,10 +10,9 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, LinkPrevi
 from database.ia_filterdb import db_count_documents, second_db_count_documents, get_file_details, delete_files
 from database.users_chats_db import db
 from datetime import datetime, timedelta
-from info import REQUESTS_CHANNEL, PREMIUM_PLANS, EFFECT_IDS, OWNER_USERNAME, IS_PREMIUM, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME
-from utils import get_plan_name, get_poster, is_premium, upload_image, get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds, render_list_page
+from info import REQUESTS_CHANNEL, PREMIUM_PLANS, EFFECT_IDS, OWNER_USERNAME, IS_PREMIUM, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME, TUTORIAL, TUTORIAL_NAME
+from utils import get_plan_name, get_poster, is_premium, upload_image, get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds, render_list_page, safe_format
 import PTN
-
 
 
 @Client.on_message(filters.command("repair_mode") & filters.incoming)
@@ -172,10 +171,11 @@ async def start(client, message):
         user_favorites = await db.get_favorites(message.from_user.id)
         for file in files:
             CAPTION = settings['caption']
-            f_caption = CAPTION.format(
+            f_caption = safe_format(
+                CAPTION,
                 file_name=file['file_name'],
                 file_size=get_size(file['file_size']),
-                file_caption=file['caption']
+                file_caption=file.get('caption', '')
             )      
             f_id_str = str(file['_id'])
             watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{f_id_str}") if f_id_str in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
@@ -230,16 +230,17 @@ async def start(client, message):
         btn = [[
             InlineKeyboardButton("🔗 Get File", url=link)
         ],[
-            InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])
+            InlineKeyboardButton(settings.get('tutorial_name', TUTORIAL_NAME), url=settings.get('tutorial', TUTORIAL))
         ]]
         await message.reply(f"📁 <b>{files['file_name']}</b>\n⚖️ <b>Size:</b> <code>{get_size(files['file_size'])}</code>\n\n✨ Your file is ready! Please access it using the secure link below. 👇", reply_markup=InlineKeyboardMarkup(btn), protect_content=True)
         return
             
     CAPTION = settings['caption']
-    f_caption = CAPTION.format(
+    f_caption = safe_format(
+        CAPTION,
         file_name = files['file_name'],
         file_size = get_size(files['file_size']),
-        file_caption=files['caption']
+        file_caption=files.get('caption', '')
     )
     user_watchlist = await db.get_watchlist(message.from_user.id)
     user_favorites = await db.get_favorites(message.from_user.id)
