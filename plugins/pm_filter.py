@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from info import AUTO_FILTER, PM_SEARCH, VERIFY_TUTORIAL, IS_PREMIUM, PICS, TUTORIAL, TUTORIAL_NAME, SHORTLINK_API, SHORTLINK_URL, OWNER_USERNAME, SECOND_FILES_DATABASE_URL, ADMINS, URL, MAX_BTN, BIN_CHANNEL, IS_STREAM, DELETE_TIME, FILMS_LINK, LOG_CHANNEL, SUPPORT_GROUP, SUPPORT_LINK, UPDATES_LINK, LANGUAGES, QUALITY
 from pyrogram.types import ReplyParameters, WebAppInfo, PreCheckoutQuery, Message, LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto, LinkPreviewOptions
 from pyrogram import Client, filters, enums
-from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, temp, get_settings, save_group_settings, render_list_page
+from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, temp, get_settings, save_group_settings, render_list_page, safe_format
 from database.users_chats_db import db
 from database.ia_filterdb import delete_files, db_count_documents, second_db_count_documents, get_search_results
 from plugins.commands import get_grp_stg
@@ -298,12 +298,12 @@ async def next_page(bot, query):
     if settings['shortlink'] and not await is_premium(query.from_user.id, bot):
         btn.insert(2,
             [InlineKeyboardButton("⚡ Send All", url=await get_shortlink(settings['url'], settings['api'], f'https://t.me/{temp.U_NAME}?start=all_{query.message.chat.id}_{key}')),
-             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])]
+             InlineKeyboardButton(settings.get('tutorial_name', TUTORIAL_NAME), url=settings.get('tutorial', TUTORIAL))]
         )
     else:
         btn.insert(2,
             [InlineKeyboardButton("⚡ Send All", callback_data=f"send_all#{key}#{req}"),
-             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])]
+             InlineKeyboardButton(settings.get('tutorial_name', TUTORIAL_NAME), url=settings.get('tutorial', TUTORIAL))]
         )
     btn.append(
         [InlineKeyboardButton('💎 Buy Premium', url=f"https://t.me/{temp.U_NAME}?start=premium")]
@@ -1685,12 +1685,12 @@ async def auto_filter(client, msg, s, spoll=False):
     if settings['shortlink'] and not await is_premium(message.from_user.id, client):
         btn.insert(2,
             [InlineKeyboardButton("⚡ Send All", url=await get_shortlink(settings['url'], settings['api'], f'https://t.me/{temp.U_NAME}?start=all_{message.chat.id}_{key}')),
-             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])]
+             InlineKeyboardButton(settings.get('tutorial_name', TUTORIAL_NAME), url=settings.get('tutorial', TUTORIAL))]
         )
     else:
         btn.insert(2,
             [InlineKeyboardButton("⚡ Send All", callback_data=f"send_all#{key}#{req}"),
-             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])]
+             InlineKeyboardButton(settings.get('tutorial_name', TUTORIAL_NAME), url=settings.get('tutorial', TUTORIAL))]
         )
     btn.append(
         [InlineKeyboardButton('💎 Buy Premium', url=f"https://t.me/{temp.U_NAME}?start=premium")]
@@ -1699,7 +1699,8 @@ async def auto_filter(client, msg, s, spoll=False):
     imdb = await get_poster(search, file=(files[0])['file_name']) if settings["imdb"] else None
     TEMPLATE = settings['template']
     if imdb:
-        cap = TEMPLATE.format(
+        cap = safe_format(
+            TEMPLATE,
             query=search,
             title=imdb['title'],
             kind=imdb['kind'],
