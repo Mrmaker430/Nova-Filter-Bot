@@ -4,11 +4,33 @@ import asyncio
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, LinkPreviewOptions
 from pyrogram import enums
 import re
+import string
 from datetime import datetime
 from database.users_chats_db import db
 from shortzy import Shortzy
 import requests, pytz
 from Script import script
+
+class SafeFormatter(string.Formatter):
+    def get_value(self, key, args, kwargs):
+        if isinstance(key, str):
+            if key not in kwargs:
+                return f"{{{key}}}"
+            return kwargs[key]
+        return super().get_value(key, args, kwargs)
+
+    def format_field(self, value, format_spec):
+        try:
+            return super().format_field(value, format_spec)
+        except Exception:
+            return str(value)
+
+def safe_format(template, **kwargs):
+    formatter = SafeFormatter()
+    try:
+        return formatter.format(template, **kwargs)
+    except Exception:
+        return template
 
 
 class temp(object):
