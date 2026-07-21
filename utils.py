@@ -69,6 +69,8 @@ def get_plan_name(days):
 async def send_update(title, year):
     if not UPDATES_SEND_CHANNEL:
         return
+    if not await db.get_movie_update_status():
+        return
     btn = [[
         InlineKeyboardButton('📥 Request from Here 📥', url=FILMS_LINK)
     ]]

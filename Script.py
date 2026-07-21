@@ -109,6 +109,7 @@ class script(object):
 • 📊 /stats - Check system status
 • 🔄 /restart - Reboot bot cleanly
 • 🛠️ /repair_mode - Maintenance mode
+• 🔔 /movie_update - Toggle movie updates
 • 🗳️ /index - Index channel files
 • 📑 /index_channels - Indexed channels
 • 🗑️ /delete - Delete files by query
