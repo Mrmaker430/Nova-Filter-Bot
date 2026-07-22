@@ -171,7 +171,7 @@ REACTIONS = [reactions for reactions in environ.get('REACTIONS', '🤝 😇 🤗
 EFFECT_IDS = [effect for effect in environ.get('EFFECT_IDS', '5104841245755180586 5104858069142078462 5159385139981059251 5046509860389126442 5046589136895476101 5107584321108051014').split()]
 
 # for Premium 
-IS_PREMIUM = is_enabled('IS_PREMIUM', True)
+IS_PREMIUM = is_enabled('IS_PREMIUM', False)
 OWNER_USERNAME = environ.get("OWNER_USERNAME", "pArAd0X6")
 PAYMENT_QR_CODE = "https://i.postimg.cc/4xmm21x5/qr-code.jpg" # add your payment qr code link, like upi qr code or any crypto qr code link
 PAYMENT_ID = "mypayment@id"  # add your payment id like upi id or crypto address
