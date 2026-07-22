@@ -70,11 +70,11 @@ class script(object):
     
     IMDB_TEMPLATE = """🎬 <b>{title}</b> ({year})
 
-<blockquote>🏷️ <b>Title</b>: <a href="{url}">{title}</a>
+<🏷️ <b>Title</b>: <a href="{url}">{title}</a>
 🎭 <b>Genres</b>: {genres}
 🌟 <b>Rating</b>: <code>{rating} / 10</code>
 ☀️ <b>Languages</b>: {languages}
-⏱️ <b>RunTime</b>: <code>{runtime} Min</code></blockquote>
+⏱️ <b>RunTime</b>: <code>{runtime} Min</code>
 
 🗣️ <b>Requested by</b>: {mention}
 ⚡ <b>Powered by</b>: <b>{group_title}</b>"""
@@ -169,16 +169,16 @@ class script(object):
     
     SOURCE_TXT = """📂 <b>Open Source Repository</b>
 
-<blockquote>🛠️ <b>Project</b>: Auto Filter Bot
+<blockquote>🛠️ <b>Project</b>: 𝑲𝒉𝒐𝒌𝒂𝒃𝒂𝒃𝒖 (𝒓𝒆𝒒) ⁿᵒ ᵃᵈˢ
 🔗 <b>Repository</b>: <a href="https://github.com/">GitHub Repo</a>
 🧑‍💻 <b>Lead Developer</b>: @pArAd0X6</blockquote>"""
 
 
-    NEW_ADDED_TEMPLATE = """✅ <b>New Content Added</b>
+    NEW_ADDED_TEMPLATE = """<blockquote>📫 𝖭𝖤𝖶 𝖥𝖨𝖫𝖤 𝖠𝖣𝖣𝖤𝖣 ✅</blockquote>
 
-<blockquote>🏷️ <b>Title</b>: <a href="{url}">{title}</a>
+🏷️ <b>Title</b>: <a href="{url}">{title}</a>
 🎭 <b>Genres</b>: {genres}
 📆 <b>Year</b>: {year}
 🌟 <b>Rating</b>: <code>{rating} / 10</code>
 ☀️ <b>Languages</b>: {languages}
-⏱️ <b>RunTime</b>: <code>{runtime} Min</code></blockquote>"""
+⏱️ <b>RunTime</b>: <code>{runtime} Min</code>"""
