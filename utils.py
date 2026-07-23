@@ -72,7 +72,7 @@ async def send_update(title, year):
     if not await db.get_movie_update_status():
         return
     btn = [[
-        InlineKeyboardButton('📥 Request from Here 📥', url=FILMS_LINK)
+        InlineKeyboardButton('📥 Request from Here 📥', url=FILMS_LINK, style=enums.ButtonStyle.SUCCESS)
     ]]
     data = await get_poster(f"{title} {year}")
     if not data:
