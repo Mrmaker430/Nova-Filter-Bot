@@ -127,6 +127,11 @@ async def save_file(media):
         logger.info(f'Saved - {file_name}')
         
         await trigger_update_if_new(title, year)
+        try:
+            from utils import temp
+            temp.QUERY_CACHE.clear()
+        except Exception as cache_err:
+            logger.error(f"Failed to clear QUERY_CACHE on save: {cache_err}")
         return 'suc'
         
     except DuplicateKeyError:
@@ -140,6 +145,11 @@ async def save_file(media):
                 logger.info(f'Saved to 2nd db - {file_name}')
                 
                 await trigger_update_if_new(title, year)
+                try:
+                    from utils import temp
+                    temp.QUERY_CACHE.clear()
+                except Exception as cache_err:
+                    logger.error(f"Failed to clear QUERY_CACHE on save: {cache_err}")
                 return 'suc'
                 
             except DuplicateKeyError:
@@ -216,6 +226,13 @@ async def delete_files(query):
         result2 = await second_collection.delete_many(filter_query)
         total_deleted += result2.deleted_count
     
+    if total_deleted > 0:
+        try:
+            from utils import temp
+            temp.QUERY_CACHE.clear()
+        except Exception as cache_err:
+            logger.error(f"Failed to clear QUERY_CACHE on delete: {cache_err}")
+
     return total_deleted
 
 

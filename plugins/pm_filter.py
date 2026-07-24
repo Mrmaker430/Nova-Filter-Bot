@@ -19,7 +19,7 @@ CAP = {}
 SELECT = {}
 FILES= {}
 ALL_FILES={}
-QUERY_CACHE = {}
+QUERY_CACHE = temp.QUERY_CACHE
 
 
 def clean_filename_for_matching(filename: str) -> str:

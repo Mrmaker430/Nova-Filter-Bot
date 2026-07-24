@@ -48,6 +48,7 @@ class temp(object):
     GROUPS_CANCEL = False
     BOT = None
     PREMIUM = {}
+    QUERY_CACHE = {}
 
 
 def get_plan_name(days):
