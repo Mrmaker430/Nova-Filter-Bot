@@ -130,6 +130,9 @@ class Database:
     async def add_join_req(self, id):
         await self.req.insert_one({'id': id})
 
+    async def remove_join_req(self, id):
+        await self.req.delete_one({'id': id})
+
     async def del_join_req(self):
         await self.req.drop()
 
