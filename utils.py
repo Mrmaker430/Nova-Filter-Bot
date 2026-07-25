@@ -118,7 +118,11 @@ async def is_subscribed(bot, query):
         for id in FORCE_SUB_CHANNELS.split(' '):
             chat = await bot.get_chat(int(id))
             try:
-                await bot.get_chat_member(int(id), query.from_user.id)
+                member = await bot.get_chat_member(int(id), query.from_user.id)
+                if member.status in [enums.ChatMemberStatus.BANNED, enums.ChatMemberStatus.LEFT]:
+                    btn.append(
+                        [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
+                    )
             except UserNotParticipant:
                 btn.append(
                     [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
@@ -127,7 +131,12 @@ async def is_subscribed(bot, query):
         id = REQUEST_FORCE_SUB_CHANNEL
         chat = await bot.get_chat(int(id))
         try:
-            await bot.get_chat_member(int(id), query.from_user.id)
+            member = await bot.get_chat_member(int(id), query.from_user.id)
+            if member.status in [enums.ChatMemberStatus.BANNED, enums.ChatMemberStatus.LEFT]:
+                url = await bot.create_chat_invite_link(int(id), creates_join_request=True)
+                btn.append(
+                    [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
+                )
         except UserNotParticipant:
             url = await bot.create_chat_invite_link(int(id), creates_join_request=True)
             btn.append(
