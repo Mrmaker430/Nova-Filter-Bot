@@ -1,6 +1,9 @@
 from pyrogram.errors import UserNotParticipant, FloodWait
 from info import FORCE_SUB_CHANNELS, LONG_IMDB_DESCRIPTION, ADMINS, IS_PREMIUM, TIME_ZONE, TMDB_API_KEY, USE_CAPTION_FILTER, UPDATES_SEND_CHANNEL, FILMS_LINK, REQUEST_FORCE_SUB_CHANNEL
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, LinkPreviewOptions
 from pyrogram import enums
 import re
@@ -96,7 +99,16 @@ async def send_update(title, year):
         countries=data['countries']
     )
     
-    if data.get('poster'):
+    poster_io = None
+    try:
+        from poster_generator import generate_movie_poster
+        poster_io = await generate_movie_poster(data)
+    except Exception as e:
+        logger.exception(f"Failed to generate custom poster: {e}")
+
+    if poster_io:
+        await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=poster_io, caption=caption, reply_markup=InlineKeyboardMarkup(btn))
+    elif data.get('poster'):
         await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=data.get('poster'), caption=caption, reply_markup=InlineKeyboardMarkup(btn))
     else:
         await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=caption, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True))
@@ -262,6 +274,14 @@ async def get_poster(query, bulk=False, id=False, file=None):
     if data.get("poster_path"):
         poster = f"https://image.tmdb.org/t/p/original{data['poster_path']}"
 
+    backdrop = None
+    if data.get("backdrop_path"):
+        backdrop = f"https://image.tmdb.org/t/p/original{data['backdrop_path']}"
+    elif data.get("poster_path"):
+        backdrop = f"https://image.tmdb.org/t/p/original{data['poster_path']}"
+
+    seasons = data.get("number_of_seasons") if media_type == "tv" else None
+
     release_date = data.get("release_date") or data.get("first_air_date")
 
     genres = list_to_str([g["name"] for g in data.get("genres", [])])
@@ -292,6 +312,8 @@ async def get_poster(query, bulk=False, id=False, file=None):
         "rating": rating,
         "votes": votes,
         "poster": poster,
+        "backdrop": backdrop,
+        "seasons": seasons,
         "plot": plot,
         "url": f"https://www.themoviedb.org/{media_type}/{tmdb_id}"
     }
