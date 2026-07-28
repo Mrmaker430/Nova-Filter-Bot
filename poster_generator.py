@@ -274,7 +274,7 @@ async def generate_movie_poster(movie_data):
     draw.rounded_rectangle(
         [(60, watermark_y), (60 + pill_w, watermark_y + pill_h)],
         radius=22,
-        fill=(255, 255, 255, 45) # 18% opacity white
+        fill=(15, 23, 42, 180) # 70% opacity dark background for high visibility
     )
     # Draw Telegram icon
     draw_telegram_icon(draw, 60 + 6, watermark_y + 6, size=32)
