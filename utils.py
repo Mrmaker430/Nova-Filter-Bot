@@ -82,7 +82,7 @@ def format_hashtags(items_str):
     return ", ".join(hashtagged) if hashtagged else "N/A"
 
 
-async def send_update(title, year, edit_msg_id=None):
+async def send_update(title, year):
     if not UPDATES_SEND_CHANNEL:
         return
     if not await db.get_movie_update_status():
@@ -190,7 +190,13 @@ async def send_update(title, year, edit_msg_id=None):
             s_padded = f"{s_num:02d}"
             eps = sorted(list(seasons_dict[s_num]))
             max_ep = max(eps) if eps else 1
-            seasons_lines.append(f"🔸 Season {s_padded} : Episode 01 to {max_ep:02d}")
+            if total_episodes_count <= 1:
+                seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode {max_ep:02d} Added")
+            else:
+                if max_ep > 1:
+                    seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode 01-{max_ep:02d} Added")
+                else:
+                    seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode 01 Added")
 
         season_episode_block = "\n".join(seasons_lines)
 
@@ -228,55 +234,23 @@ async def send_update(title, year, edit_msg_id=None):
     except Exception as e:
         logger.exception(f"Failed to generate custom poster: {e}")
 
-    msg = None
-    if edit_msg_id:
-        try:
-            try:
-                msg = await temp.BOT.edit_message_caption(
-                    chat_id=UPDATES_SEND_CHANNEL,
-                    message_id=edit_msg_id,
-                    caption=caption,
-                    reply_markup=InlineKeyboardMarkup(btn)
-                )
-            except Exception:
-                msg = await temp.BOT.edit_message_text(
-                    chat_id=UPDATES_SEND_CHANNEL,
-                    message_id=edit_msg_id,
-                    text=caption,
-                    reply_markup=InlineKeyboardMarkup(btn),
-                    link_preview_options=LinkPreviewOptions(is_disabled=True)
-                )
-            logger.info(f"Successfully edited TV series update for message {edit_msg_id}")
-        except Exception as edit_err:
-            logger.error(f"Failed to edit TV series message {edit_msg_id}: {edit_err}. Falling back to sending a new post.")
-            edit_msg_id = None
+    try:
+        if poster_io:
+            await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=poster_io, caption=caption, reply_markup=InlineKeyboardMarkup(btn))
+        elif data.get('poster'):
+            await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=data.get('poster'), caption=caption, reply_markup=InlineKeyboardMarkup(btn))
+        else:
+            await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=caption, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True))
+    except Exception as send_err:
+        logger.error(f"Failed to send movie update: {send_err}")
 
-    if not edit_msg_id:
-        try:
-            if poster_io:
-                msg = await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=poster_io, caption=caption, reply_markup=InlineKeyboardMarkup(btn))
-            elif data.get('poster'):
-                msg = await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=data.get('poster'), caption=caption, reply_markup=InlineKeyboardMarkup(btn))
-            else:
-                msg = await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=caption, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True))
-
-            if msg:
-                from database.ia_filterdb import updates_collection
-                normalized_title = str(title).strip().lower()
-                await updates_collection.update_one(
-                    {"title": normalized_title, "year": year},
-                    {"$set": {"message_id": msg.id, "kind": data.get('kind')}}
-                )
-        except Exception as send_err:
-            logger.error(f"Failed to send movie update: {send_err}")
-
-        try:
-            await temp.BOT.send_sticker(
-                chat_id=UPDATES_SEND_CHANNEL,
-                sticker="CAACAgUAAxkBAALIC2poNkeCLO7oGxrvA-J9BuOkQgrdAAK0HgACcVWZVlDepbKeENKoPQQ"
-            )
-        except Exception as sticker_err:
-            logger.error(f"Failed to send sticker: {sticker_err}")
+    try:
+        await temp.BOT.send_sticker(
+            chat_id=UPDATES_SEND_CHANNEL,
+            sticker="CAACAgUAAxkBAALIC2poNkeCLO7oGxrvA-J9BuOkQgrdAAK0HgACcVWZVlDepbKeENKoPQQ"
+        )
+    except Exception as sticker_err:
+        logger.error(f"Failed to send sticker: {sticker_err}")
 
 
 async def handle_next_back(data, offset=0, max_results=0):
@@ -355,20 +329,13 @@ async def get_poster(query, bulk=False, id=False, file=None):
 
     if not id:
         query = query.strip()
-        query = re.sub(r'\b(?:s(?:eason)?\s*\d+\s*(?:e(?:p(?:isode)?)?\s*\d+)?|e(?:p(?:isode)?)?\s*\d+)\b', '', query, flags=re.IGNORECASE)
-        query = re.sub(r'\b(?:to|and|season|episode|ep|eps|seasons)\b', '', query, flags=re.IGNORECASE)
-        query = re.sub(r'[\s\.\-_]+$', '', query)
-        query = re.sub(r'^[\s\.\-_]+', '', query)
-        query = re.sub(r'\s+', ' ', query).strip()
 
         year_match = re.findall(r"[1-2]\d{3}$", query)
         if year_match:
             year = year_match[0]
             title = query.replace(year, "").strip()
-        else:
-            title = query
 
-        if not year_match and file:
+        elif file:
             file_year = re.findall(r"[1-2]\d{3}", file)
             if file_year:
                 year = file_year[0]
