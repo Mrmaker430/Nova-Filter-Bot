@@ -13,21 +13,6 @@ from Script import script
 @Client.on_chat_member_updated()
 async def welcome(bot, message):
     if REQUEST_FORCE_SUB_CHANNEL and message.chat.id == int(REQUEST_FORCE_SUB_CHANNEL):
-        is_left = False
-        if message.new_chat_member:
-            if message.new_chat_member.status in [enums.ChatMemberStatus.LEFT, enums.ChatMemberStatus.BANNED]:
-                is_left = True
-        elif message.old_chat_member and not message.new_chat_member:
-            is_left = True
-
-        if is_left:
-            user_id = None
-            if message.new_chat_member and message.new_chat_member.user:
-                user_id = message.new_chat_member.user.id
-            elif message.old_chat_member and message.old_chat_member.user:
-                user_id = message.old_chat_member.user.id
-            if user_id:
-                await db.remove_join_req(user_id)
         return
 
     if message.chat.type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
@@ -268,7 +253,7 @@ async def list_chats(bot, message):
 @Client.on_chat_join_request()
 async def join_reqs(client, message: ChatJoinRequest):
     if REQUEST_FORCE_SUB_CHANNEL and message.chat.id == int(REQUEST_FORCE_SUB_CHANNEL):
-        if not db.find_join_req(message.from_user.id):
+        if not await db.find_join_req(message.from_user.id):
             await db.add_join_req(message.from_user.id)
 
 
