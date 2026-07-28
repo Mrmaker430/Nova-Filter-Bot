@@ -173,27 +173,8 @@ async def generate_movie_poster(movie_data):
         _, lh = get_text_size(line, font_title)
         current_y += lh + 10
 
-    # B. IMDb Rating Badge
-    rating = movie_data.get('rating')
-    if rating:
-        # Draw dynamic rating badge
-        font_rating = load_font(FONT_BOLD, 20)
-        badge_text = f"★ {rating:.1f} IMDb"
-        tw, th = get_text_size(badge_text, font_rating)
-
-        # Draw pill container
-        badge_w = tw + 24
-        badge_h = th + 12
-        draw.rounded_rectangle(
-            [(60, current_y), (60 + badge_w, current_y + badge_h)],
-            radius=8,
-            fill="#F5C518"
-        )
-        # Draw text inside
-        draw.text((60 + 12, current_y + 6), badge_text, font=font_rating, fill="#000000")
-        current_y += badge_h + 25
-    else:
-        current_y += 15
+    # B. IMDb Rating Badge omitted as per request
+    current_y += 15
 
     # C. Plot description
     plot_text = movie_data.get('plot') or "No description available."
