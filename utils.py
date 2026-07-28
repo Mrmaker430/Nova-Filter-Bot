@@ -264,9 +264,6 @@ async def handle_next_back(data, offset=0, max_results=0):
 async def is_subscribed(bot, query):
     btn = []
     user_id = query.from_user.id
-    if await is_premium(user_id, bot) or await db.find_force_sub_user(user_id):
-        return btn
-    passed_force_sub = False    
     if FORCE_SUB_CHANNELS:
         for id in FORCE_SUB_CHANNELS.split(' '):
             chat = await bot.get_chat(int(id))
@@ -276,8 +273,6 @@ async def is_subscribed(bot, query):
                     btn.append(
                         [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
                     )
-                else:
-                    passed_force_sub = True   
             except UserNotParticipant:
                 btn.append(
                     [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
@@ -292,17 +287,11 @@ async def is_subscribed(bot, query):
                 btn.append(
                     [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
                 )
-            else:
-                passed_force_sub = True     
         except UserNotParticipant:
             url = await bot.create_chat_invite_link(int(id), creates_join_request=True)
             btn.append(
                 [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
             )
-    else:
-        passed_force_sub = passed_force_sub or bool(REQUEST_FORCE_SUB_CHANNEL)
-    if passed_force_sub and not btn:
-        await db.add_force_sub_user(user_id)
     return btn
 
 
