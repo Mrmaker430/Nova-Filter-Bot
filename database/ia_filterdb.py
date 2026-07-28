@@ -103,13 +103,7 @@ async def trigger_update_if_new(title, year):
         from utils import send_update
         asyncio.create_task(send_update(title, year))
     except DuplicateKeyError:
-        doc = await updates_collection.find_one({
-            "title": normalized_title,
-            "year": year
-        })
-        if doc and doc.get("kind") == "tv" and doc.get("message_id"):
-            from utils import send_update
-            asyncio.create_task(send_update(title, year, edit_msg_id=doc["message_id"]))
+        pass
 
 
 async def save_file(media):
