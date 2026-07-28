@@ -70,6 +70,18 @@ def get_plan_name(days):
     return f"{days} Days Plan"
 
 
+def format_hashtags(items_str):
+    if not items_str or items_str == "N/A":
+        return "N/A"
+    items = [i.strip() for i in items_str.split(",") if i.strip()]
+    hashtagged = []
+    for item in items:
+        clean_item = re.sub(r'[^a-zA-Z0-9_]', '', item)
+        if clean_item:
+            hashtagged.append(f"#{clean_item}")
+    return ", ".join(hashtagged) if hashtagged else "N/A"
+
+
 async def send_update(title, year):
     if not UPDATES_SEND_CHANNEL:
         return
@@ -81,24 +93,140 @@ async def send_update(title, year):
     data = await get_poster(f"{title} {year}")
     if not data:
         _year = f"({year})" if year else ""
-        await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=f"✅ New Added ✅\n\n🏷 Title: {title.title()} {_year}", reply_markup=InlineKeyboardMarkup(btn))
+        try:
+            await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=f"✅ New Added ✅\n\n🏷 Title: {title.title()} {_year}", reply_markup=InlineKeyboardMarkup(btn))
+        except Exception as send_err:
+            logger.error(f"Failed to send fallback message: {send_err}")
+        try:
+            await temp.BOT.send_sticker(
+                chat_id=UPDATES_SEND_CHANNEL,
+                sticker="CAACAgUAAxkBAALIC2poNkeCLO7oGxrvA-J9BuOkQgrdAAK0HgACcVWZVlDepbKeENKoPQQ"
+            )
+        except Exception as sticker_err:
+            logger.error(f"Failed to send sticker: {sticker_err}")
         return
-    caption = script.NEW_ADDED_TEMPLATE.format(
-        title=data['title'],
-        kind=data['kind'],
-        votes=data['votes'],
-        tmdb_id=data["tmdb_id"],
-        runtime=data["runtime"],
-        release_date=data['release_date'],
-        year=data['year'],
-        genres=data['genres'],
-        plot=data['plot'],
-        rating=data['rating'],
-        url=data['url'],
-        languages=data['languages'],
-        countries=data['countries']
-    )
-    
+
+    # Genres and languages hashtag formatting
+    genres_str = format_hashtags(data.get('genres'))
+    languages_str = format_hashtags(data.get('languages'))
+
+    # Rating formatting
+    rating = data.get('rating')
+    votes = data.get('votes')
+    if rating and rating > 0:
+        if isinstance(rating, (int, float)):
+            if isinstance(rating, float) and rating.is_integer():
+                rating_val = int(rating)
+            else:
+                rating_val = rating
+            rating_str = f"{rating_val}/10"
+        else:
+            rating_str = f"{rating}/10"
+        if votes:
+            rating_str += f" ({votes} votes)"
+    else:
+        rating_str = "N/A"
+
+    release_date = data.get('release_date') or "N/A"
+    url = data.get('url')
+    title_display = data.get('title') or title
+
+    if data.get('kind') == 'tv':
+        # Introduce 5-second sleep to let concurrent batch saves finish saving
+        await asyncio.sleep(5)
+
+        from database.ia_filterdb import get_search_results
+        import PTN
+        from plugins.pm_filter import get_seasons_from_filename, get_episodes_from_filename
+
+        all_files = await get_search_results(title_display)
+
+        def is_title_match(t1, t2):
+            if not t1 or not t2:
+                return False
+            n1 = re.sub(r'[^a-z0-9]', '', t1.lower())
+            n2 = re.sub(r'[^a-z0-9]', '', t2.lower())
+            return n1 == n2 or n1 in n2 or n2 in n1
+
+        matching_files = []
+        for file_doc in all_files:
+            fname = file_doc.get('file_name', '')
+            p_data = PTN.parse(fname)
+            p_title = p_data.get('title') or ""
+            if is_title_match(p_title, title_display) or is_title_match(fname, title_display):
+                matching_files.append((fname, p_data))
+
+        seasons_dict = {}
+        for fname, p_data in matching_files:
+            seasons = get_seasons_from_filename(fname)
+            if not seasons and 'season' in p_data:
+                s = p_data['season']
+                if isinstance(s, list):
+                    seasons.update(s)
+                elif isinstance(s, int):
+                    seasons.add(s)
+            if not seasons:
+                seasons.add(1)
+            for s_num in seasons:
+                if s_num not in seasons_dict:
+                    seasons_dict[s_num] = set()
+                episodes = get_episodes_from_filename(fname, season=s_num)
+                if not episodes and 'episode' in p_data:
+                    e = p_data['episode']
+                    if isinstance(e, list):
+                        seasons_dict[s_num].update(e)
+                    elif isinstance(e, int):
+                        seasons_dict[s_num].add(e)
+                else:
+                    seasons_dict[s_num].update(episodes)
+
+        if not seasons_dict:
+            seasons_dict[1] = {1}
+
+        total_episodes_count = sum(len(eps) for eps in seasons_dict.values())
+
+        seasons_lines = []
+        for s_num in sorted(seasons_dict.keys()):
+            s_padded = f"{s_num:02d}"
+            eps = sorted(list(seasons_dict[s_num]))
+            max_ep = max(eps) if eps else 1
+            if total_episodes_count <= 1:
+                seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode {max_ep:02d} Added")
+            else:
+                if max_ep > 1:
+                    seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode 01-{max_ep:02d} Added")
+                else:
+                    seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode 01 Added")
+
+        season_episode_block = "\n".join(seasons_lines)
+
+        title_html = f"<b><a href='{url}'>{title_display}</a></b>" if url else f"<b>{title_display}</b>"
+        caption = f"""✨ NEW UPLOAD ADDED ✨
+
+📺 {title_html}
+{season_episode_block}
+
+🏷️ Category: #TV
+⭐ Rating: {rating_str}
+🎭 Genres: {genres_str}
+🌐 Language: {languages_str}
+📅 Release: {release_date}"""
+
+    else:
+        # Movie
+        m_year = data.get('year') or year
+        title_with_year = f"{title_display} ({m_year})" if m_year else title_display
+        title_html = f"<b><a href='{url}'>{title_with_year}</a></b>" if url else f"<b>{title_with_year}</b>"
+        caption = f"""✨ NEW UPLOAD ADDED ✨
+
+🎬 {title_html}
+
+🏷️ Category: #Movie
+⭐ Rating: {rating_str}
+🎭 Genres: {genres_str}
+🌐 Language: {languages_str}
+📅 Release: {release_date}"""
+
     poster_io = None
     try:
         from poster_generator import generate_movie_poster
@@ -106,12 +234,23 @@ async def send_update(title, year):
     except Exception as e:
         logger.exception(f"Failed to generate custom poster: {e}")
 
-    if poster_io:
-        await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=poster_io, caption=caption, reply_markup=InlineKeyboardMarkup(btn))
-    elif data.get('poster'):
-        await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=data.get('poster'), caption=caption, reply_markup=InlineKeyboardMarkup(btn))
-    else:
-        await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=caption, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True))
+    try:
+        if poster_io:
+            await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=poster_io, caption=caption, reply_markup=InlineKeyboardMarkup(btn))
+        elif data.get('poster'):
+            await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=data.get('poster'), caption=caption, reply_markup=InlineKeyboardMarkup(btn))
+        else:
+            await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=caption, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True))
+    except Exception as send_err:
+        logger.error(f"Failed to send movie update: {send_err}")
+
+    try:
+        await temp.BOT.send_sticker(
+            chat_id=UPDATES_SEND_CHANNEL,
+            sticker="CAACAgUAAxkBAALIC2poNkeCLO7oGxrvA-J9BuOkQgrdAAK0HgACcVWZVlDepbKeENKoPQQ"
+        )
+    except Exception as sticker_err:
+        logger.error(f"Failed to send sticker: {sticker_err}")
 
 
 async def handle_next_back(data, offset=0, max_results=0):
