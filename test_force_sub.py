@@ -5,14 +5,10 @@ from pyrogram.errors import UserNotParticipant
 import asyncio
 
 class TestForceSubscription(unittest.IsolatedAsyncioTestCase):
-    @patch("utils.is_premium", new_callable=AsyncMock)
     @patch("utils.db", new_callable=AsyncMock)
     @patch("utils.FORCE_SUB_CHANNELS", "12345")
     @patch("utils.REQUEST_FORCE_SUB_CHANNEL", "")
-    async def test_is_subscribed_member_status_active(self, mock_db, mock_is_premium):
-        mock_is_premium.return_value = False
-        mock_db.find_force_sub_user.return_value = False
-        mock_db.add_force_sub_user = AsyncMock()
+    async def test_is_subscribed_member_status_active(self, mock_db):
         bot = AsyncMock()
         query = MagicMock()
         query.from_user.id = 11111
@@ -29,16 +25,11 @@ class TestForceSubscription(unittest.IsolatedAsyncioTestCase):
         from utils import is_subscribed
         btn = await is_subscribed(bot, query)
         self.assertEqual(len(btn), 0)
-        mock_db.add_force_sub_user.assert_awaited_once_with(11111)
 
-    @patch("utils.is_premium", new_callable=AsyncMock)
     @patch("utils.db", new_callable=AsyncMock)
     @patch("utils.FORCE_SUB_CHANNELS", "12345")
     @patch("utils.REQUEST_FORCE_SUB_CHANNEL", "")
-    async def test_is_subscribed_member_status_left(self, mock_db, mock_is_premium):
-        mock_is_premium.return_value = False
-        mock_db.find_force_sub_user.return_value = False
-        mock_db.add_force_sub_user = AsyncMock()
+    async def test_is_subscribed_member_status_left(self, mock_db):
         bot = AsyncMock()
         query = MagicMock()
         query.from_user.id = 11111
@@ -56,16 +47,11 @@ class TestForceSubscription(unittest.IsolatedAsyncioTestCase):
         btn = await is_subscribed(bot, query)
         self.assertEqual(len(btn), 1)
         self.assertEqual(btn[0][0].text, "📢 Join : Test Channel")
-        mock_db.add_force_sub_user.assert_not_awaited()
 
-    @patch("utils.is_premium", new_callable=AsyncMock)
     @patch("utils.db", new_callable=AsyncMock)
     @patch("utils.FORCE_SUB_CHANNELS", "12345")
     @patch("utils.REQUEST_FORCE_SUB_CHANNEL", "")
-    async def test_is_subscribed_user_not_participant_exception(self, mock_db, mock_is_premium):
-        mock_is_premium.return_value = False
-        mock_db.find_force_sub_user.return_value = False
-        mock_db.add_force_sub_user = AsyncMock()
+    async def test_is_subscribed_user_not_participant_exception(self, mock_db):
         bot = AsyncMock()
         query = MagicMock()
         query.from_user.id = 11111
@@ -82,24 +68,6 @@ class TestForceSubscription(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(btn), 1)
         self.assertEqual(btn[0][0].text, "📢 Join : Test Channel")
 
-
-    @patch("utils.is_premium", new_callable=AsyncMock)
-    @patch("utils.db", new_callable=AsyncMock)
-    @patch("utils.FORCE_SUB_CHANNELS", "12345")
-    @patch("utils.REQUEST_FORCE_SUB_CHANNEL", "")
-    async def test_is_subscribed_user_previously_joined_not_forced_after_left(self, mock_db, mock_is_premium):
-        mock_is_premium.return_value = False
-        mock_db.find_force_sub_user.return_value = True
-        bot = AsyncMock()
-        query = MagicMock()
-        query.from_user.id = 11111
-
-        from utils import is_subscribed
-        btn = await is_subscribed(bot, query)
-        self.assertEqual(len(btn), 0)
-        bot.get_chat.assert_not_awaited()
-        bot.get_chat_member.assert_not_awaited()
-        
     @patch("database.users_chats_db.data_db")
     async def test_db_remove_join_req(self, mock_data_db):
         from database.users_chats_db import Database

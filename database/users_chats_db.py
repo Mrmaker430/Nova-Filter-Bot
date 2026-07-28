@@ -52,7 +52,6 @@ class Database:
         self.grp = data_db.Groups
         self.prm = data_db.Premiums
         self.req = data_db.Requests
-        self.fsub = data_db.ForceSubUsers
         self.con = data_db.Connections
         self.stg = data_db.Settings
         self.movie_req = data_db.MovieRequests
@@ -137,17 +136,6 @@ class Database:
     async def del_join_req(self):
         await self.req.drop()
 
-    async def find_force_sub_user(self, id):
-        user = await self.fsub.find_one({'id': int(id)})
-        return bool(user)
-
-    async def add_force_sub_user(self, id):
-        await self.fsub.update_one(
-            {'id': int(id)},
-            {'$set': {'id': int(id), 'joined_once': True}},
-            upsert=True
-        )
-        
     async def get_banned(self):
         users = await self.col.find({'ban_status.is_banned': True}).to_list(length=None)
         chats = await self.grp.find({'chat_status.is_disabled': True}).to_list(length=None)
