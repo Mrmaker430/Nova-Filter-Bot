@@ -191,12 +191,12 @@ async def send_update(title, year):
             eps = sorted(list(seasons_dict[s_num]))
             max_ep = max(eps) if eps else 1
             if total_episodes_count <= 1:
-                seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode {max_ep:02d} Added")
+                seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode {max_ep} Added")
             else:
                 if max_ep > 1:
-                    seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode 01-{max_ep:02d} Added")
+                    seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episodes 1 to {max_ep} Added")
                 else:
-                    seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode 01 Added")
+                    seasons_lines.append(f"🔸 Season {s_padded}\n🔹 Episode 1 Added")
 
         season_episode_block = "\n".join(seasons_lines)
 
