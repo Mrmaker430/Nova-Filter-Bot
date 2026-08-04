@@ -4,7 +4,6 @@
 
 </div>
 
-
 ## 𝐹𝑒𝑎𝑡𝑢𝑟𝑒𝑠
 - [x] 𝐼𝑀𝐷𝐵 𝑇𝑒𝑚𝑝𝑙𝑎𝑡𝑒 𝑆𝑒𝑡
 - [x] 𝑂𝑛𝑙𝑖𝑛𝑒 𝑠𝑡𝑟𝑒𝑎𝑚 𝑎𝑛𝑑 𝑑𝑜𝑤𝑛𝑙𝑜𝑎𝑑
@@ -26,6 +25,33 @@
 - [x] 𝑆𝑝𝑒𝑙𝑙𝑖𝑛𝑔 𝐶ℎ𝑒𝑐𝑘 𝐹𝑒𝑎𝑡𝑢𝑟𝑒
 - [x] 𝐴𝑢𝑡𝑜 𝐷𝑒𝑙𝑒𝑡𝑒
 - [x] 𝐴𝑛𝑑 𝑀𝑜𝑟𝑒...
+
+---
+
+### 🆕 Recently Added Advanced Features (Powered by Jules)
+We have recently upgraded Nova Filter Bot with a set of robust, enterprise-ready features and optimizations co-developed with **Jules (AI Software Engineer)**:
+
+* 🎨 **Pillow-Based Landscape Banner Generator** (`poster_generator.py`):
+  - Automatically renders beautiful, stylized `1280x720` landscape banners for new movie and TV show channel updates.
+  - Features real-time poster and backdrop download, custom backdrop blurring, movie poster overlay, high-contrast badges for languages/genres, wrapped plot summaries, and custom Telegram-themed watermarks.
+* 🛠️ **Safe Template Formatting** (`safe_format`):
+  - Introduced a secure formatting utility for all user-customizable templates (such as dynamic file captions, welcome messages, and custom texts).
+  - Prevents application-wide crashes caused by malformed user inputs, missing keyword arguments, or invalid format specifiers by falling back safely to raw text or default strings.
+* 📺 **Advanced TV Show Updates Format & Editing**:
+  - Automatically formats newly indexed TV shows sent to the updates channel.
+  - Formats season and episode details dynamically (e.g., `🔹 Episodes 1 to {max_ep} Added` for multiple episodes, or `🔹 Episode {max_ep} Added` for single ones).
+  - Utilizes smart message editing (`edit_message_caption` or `edit_message_text`) to append details to existing update posts rather than flooding the channel with duplicate messages.
+* 🔍 **Smart TMDb Search & Poster Cleaning**:
+  - Automatically cleans season and episode indicators (e.g., `S01`, `S01E01`, `Season 1`) from the file search title before querying the TMDb API.
+  - Ensures faster and exponentially more accurate movie/show metadata matches on TMDb.
+* 🛡️ **Strict Live Force Subscription**:
+  - Enforces a live subscription check (`is_subscribed`) directly with the Telegram API on every file request.
+  - Strictly validates real-time status (including handling users with status `LEFT` or `BANNED`), completely avoiding database caching of membership statuses or premium-bypass issues.
+* ⚙️ **Enhanced Startup Validation & DB Stability**:
+  - Validates `API_ID` on startup to ensure it is a valid 32-bit signed integer, avoiding cryptic Pyrogram/MTProto serialization overflow crashes (e.g., if a user mistakenly inputs their phone number or bot token).
+  - Merges outdated database group documents with `default_setgs` seamlessly, ensuring the bot never crashes when encountering older database schemas.
+
+---
 
 ## Demo Bot
 * [![Demo](https://img.shields.io/static/v1?label=Demo&message=Bot&color=critical)](https://t.me/TestbotAf_bot)
@@ -146,9 +172,13 @@ sudo docker logs Auto-Filter-Bot
 ## Support
 * [![Support](https://img.shields.io/static/v1?label=Support&message=Group&color=critical)](https://t.me/Nova_Filter_Official)
 
-## Credits 
+## Credits
 * [![EvaMaria](https://img.shields.io/static/v1?label=EvaMaria&message=Developers&color=critical)](https://t.me/TeamEvamaria)
 * [![Hansaka](https://img.shields.io/static/v1?label=Hansaka&message=TG&color=critical)](https://t.me/Hansaka_Anuhas)
+* [![Jules](https://img.shields.io/static/v1?label=Jules&message=AI%20Engineer&color=blueviolet)](https://github.com/Jules)
+
+---
+*Co-developed with love & expertise by Jules (AI Software Engineer Assistant).*
 
 ## Thanks To
 * [Kurigram](https://github.com/KurimuzonAkuma/kurigram) For Telegram MTProto API Framework
@@ -160,7 +190,7 @@ sudo docker logs Auto-Filter-Bot
 * If you find any bugs or errors, [report](https://t.me/Nova_Filter_Official) it
 
 ## Disclaimer
-[![GNU General Public License v3.0](https://www.gnu.org/graphics/gplv3-with-text-136x68.png)](https://www.gnu.org/licenses/agpl-3.0.en.html#header)  
+[![GNU General Public License v3.0](https://www.gnu.org/graphics/gplv3-with-text-136x68.png)](https://www.gnu.org/licenses/agpl-3.0.en.html#header)
 
 * Licensed under [GNU AGPL v3.0](https://github.com/xHansaka-Anuhas/Nova-Filter-Bot/blob/main/LICENSE)
 Selling The Codes To Other People For Money Is *Strictly Prohibited*.
