@@ -11,4 +11,3 @@ httpx
 motor
 parse-torrent-title
 Pillow
-chanify
