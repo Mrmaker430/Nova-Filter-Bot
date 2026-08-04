@@ -23,9 +23,6 @@ from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from pyrogram.errors import FloodWait
 from aiohttp import web
 from typing import Union, Optional, AsyncGenerator
-from chanify import Chanify
-
-chanify = Chanify("chanify_live_156e2f339e5f323cfe8d9d9635d9f49a")
 
 from web import web_app
 from info import URL, INDEX_CHANNELS, SUPPORT_GROUP, LOG_CHANNEL, API_ID, DATA_DATABASE_URL, API_HASH, BOT_TOKEN, PORT, BIN_CHANNEL, ADMINS, SECOND_FILES_DATABASE_URL, FILES_DATABASE_URL, FORCE_SUB_CHANNELS, REQUEST_FORCE_SUB_CHANNEL, AUTO_FILTER, PM_SEARCH
@@ -49,20 +46,6 @@ class Bot(Client):
         self.add_handler(MessageHandler(self._repair_mode_message_handler), group=-2)
         self.add_handler(CallbackQueryHandler(self._repair_mode_cb_handler), group=-2)
         self.add_handler(MessageHandler(self._listener_handler), group=-1)
-
-    def add_handler(self, handler, group: int = 0):
-        if isinstance(handler, MessageHandler):
-            old_callback = handler.callback
-            async def wrapped_callback(client, message, *args, **kwargs):
-                try:
-                    await old_callback(client, message, *args, **kwargs)
-                finally:
-                    try:
-                        await chanify.show_ad(chat_id=message.chat.id, user=message.from_user)
-                    except Exception as e:
-                        logger.error(f"Error in Chanify show_ad: {e}")
-            handler.callback = wrapped_callback
-        return super().add_handler(handler, group)
 
     async def _repair_mode_message_handler(self, client: Client, message: types.Message):
         if await db.get_repair_mode():
@@ -146,10 +129,6 @@ class Bot(Client):
         logger.info(f"Bot [@{me.username}] and webapp [{URL}] is started now ✓")
 
     async def stop(self, **kwargs):
-        try:
-            await chanify.close()
-        except Exception as e:
-            logger.error(f"Error closing Chanify client: {e}")
         await super().stop()
         logger.info("Bot Stopped! Bye...")
 
@@ -164,6 +143,5 @@ class Bot(Client):
                 yield message
                 current += 1
 
-if __name__ == "__main__":
-    app = Bot()
-    app.run()
+app = Bot()
+app.run()
