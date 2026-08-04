@@ -20,13 +20,24 @@ def is_valid_ip(ip):
     ip_pattern = r'\b(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
     return re.match(ip_pattern, ip) is not None
 
+import sys
+
 # Bot information
 API_ID = environ.get('API_ID', '')
 if len(API_ID) == 0:
     logger.error('API_ID is missing, exiting now')
-    exit()
+    sys.exit(1)
 else:
-    API_ID = int(API_ID)
+    try:
+        API_ID = int(API_ID)
+        if not (1 <= API_ID <= 2147483647):
+            raise ValueError("API_ID out of 32-bit signed integer range (1 to 2147483647)")
+    except ValueError as e:
+        logger.error(f'API_ID is invalid: {e}. '
+                     'Make sure you are using a valid 32-bit signed integer obtained from '
+                     'https://my.telegram.org/apps. Ensure you did not mistakenly use your '
+                     'BOT_TOKEN, Bot User ID, or a Phone Number/Channel ID as the API_ID. Exiting now.')
+        sys.exit(1)
 API_HASH = environ.get('API_HASH', '')
 if len(API_HASH) == 0:
     logger.error('API_HASH is missing, exiting now')
