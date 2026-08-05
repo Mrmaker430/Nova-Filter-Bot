@@ -160,40 +160,63 @@ async def generate_movie_poster(movie_data):
         draw.text((850 + 176 - tw//2, 100 + 261 - th//2), "NO POSTER", font=f_placeholder, fill="#94A3B8")
 
     # 3. Draw Left-Side Elements
-    # A. Title
+    # A. Title & Rating
     title = str(movie_data.get('title', '')).upper()
-    font_title = load_font(FONT_BOLD, 48)
-
-    # Wrap title if it exceeds width limit (720px)
-    title_lines = wrap_text(title, font_title, 720)
-    current_y = 100
-
-    for line in title_lines:
-        draw.text((60, current_y), line, font=font_title, fill="#FFFFFF")
-        _, lh = get_text_size(line, font_title)
-        current_y += lh + 10
-
-    # B. IMDb Rating Badge
+    font_title = load_font(FONT_BOLD, 44)
     rating = movie_data.get('rating')
+
+    # Calculate IMDb Rating Badge dimensions
+    badge_w = 0
+    badge_h = 0
+    badge_text = ""
+    font_rating = None
     if rating:
-        # Draw dynamic rating badge
         font_rating = load_font(FONT_BOLD, 20)
         badge_text = f"★ {rating:.1f} IMDb"
         tw, th = get_text_size(badge_text, font_rating)
-
-        # Draw pill container
         badge_w = tw + 24
         badge_h = th + 12
+
+    # Wrap title - if rating is present, reduce wrap limit to leave space for rating
+    max_title_width = 720
+    if rating:
+        max_title_width = 720 - (badge_w + 20)
+
+    title_lines = wrap_text(title, font_title, max_title_width)
+    current_y = 100
+
+    for i, line in enumerate(title_lines):
+        draw.text((60, current_y), line, font=font_title, fill="#FFFFFF")
+        lw, lh = get_text_size(line, font_title)
+
+        # If last line and rating exists, place rating beside the title
+        if i == len(title_lines) - 1 and rating:
+            badge_x = 60 + lw + 20
+            # Center vertically with the title line
+            badge_y = current_y + (lh - badge_h) // 2
+            draw.rounded_rectangle(
+                [(badge_x, badge_y), (badge_x + badge_w, badge_y + badge_h)],
+                radius=8,
+                fill="#F5C518"
+            )
+            draw.text((badge_x + 12, badge_y + 6), badge_text, font=font_rating, fill="#000000")
+        current_y += lh + 8
+
+    if not title_lines and rating:
+        badge_x = 60
+        badge_y = current_y
         draw.rounded_rectangle(
-            [(60, current_y), (60 + badge_w, current_y + badge_h)],
+            [(badge_x, badge_y), (badge_x + badge_w, badge_y + badge_h)],
             radius=8,
             fill="#F5C518"
         )
-        # Draw text inside
-        draw.text((60 + 12, current_y + 6), badge_text, font=font_rating, fill="#000000")
-        current_y += badge_h + 25
-    else:
-        current_y += 15
+        draw.text((badge_x + 12, badge_y + 6), badge_text, font=font_rating, fill="#000000")
+        current_y += badge_h + 8
+
+    # Draw solid underline under title
+    underline_y = current_y + 8
+    draw.line([(60, underline_y), (780, underline_y)], fill="#FFFFFF", width=3)
+    current_y = underline_y + 12
 
     # C. Plot description
     plot_text = movie_data.get('plot') or "No description available."
@@ -208,11 +231,11 @@ async def generate_movie_poster(movie_data):
     for line in plot_lines:
         draw.text((60, current_y), line, font=font_plot, fill="#E2E8F0")
         _, lh = get_text_size(line, font_plot)
-        current_y += lh + 8
+        current_y += lh + 6
 
     # D. Metadata badges (Pills)
-    # Target badges at y=530 to align beautifully
-    badge_y = 530
+    # Target badges dynamically to decrease gaps
+    badge_y = current_y + 15
     badges = []
 
     # Kind / Media Type
@@ -242,18 +265,20 @@ async def generate_movie_poster(movie_data):
     # Draw badges
     current_x = 60
     font_badge = load_font(FONT_BOLD, 18)
+    badge_max_h = 0
     for b_text in badges:
         bw, bh = get_text_size(b_text, font_badge)
         pill_w = bw + 20
         pill_h = bh + 12
-        # Semi-transparent forest green: #2e5a44 with alpha 180
+        badge_max_h = max(badge_max_h, pill_h)
+        # Semi-transparent high-contrast blue background with a medium radius 10
         draw.rounded_rectangle(
             [(current_x, badge_y), (current_x + pill_w, badge_y + pill_h)],
             radius=10,
-            fill=(46, 90, 68, 180)
+            fill=(30, 64, 175, 180)
         )
         draw.text((current_x + 10, badge_y + 6), b_text, font=font_badge, fill="#FFFFFF")
-        current_x += pill_w + 15
+        current_x += pill_w + 12
 
     # E. Watermark Banner
     watermark_text = os.environ.get("POSTER_WATERMARK")
@@ -263,7 +288,8 @@ async def generate_movie_poster(movie_data):
         else:
             watermark_text = "@cholochhitro"
 
-    watermark_y = 610
+    # Position the watermark dynamically with a tight gap of 20px, minimum 610px
+    watermark_y = max(badge_y + badge_max_h + 20, 610)
     font_watermark = load_font(FONT_BOLD, 20)
     ww, wh = get_text_size(watermark_text, font_watermark)
 
@@ -273,7 +299,7 @@ async def generate_movie_poster(movie_data):
     pill_h = 44
     draw.rounded_rectangle(
         [(60, watermark_y), (60 + pill_w, watermark_y + pill_h)],
-        radius=22,
+        radius=10, # medium radius 10 instead of 22
         fill=(15, 23, 42, 180) # 70% opacity dark background for high visibility
     )
     # Draw Telegram icon
