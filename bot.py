@@ -70,7 +70,7 @@ class Bot(Client):
             future = self.listeners[listener_id]
             if not future.done():
                 future.set_result(message)
-            raise StopPropagation
+                raise StopPropagation
 
     async def listen(self, chat_id: int, user_id: int, timeout: int = 60) -> Optional[types.Message]:
         future = asyncio.get_event_loop().create_future()
@@ -89,7 +89,8 @@ class Bot(Client):
         except asyncio.TimeoutError:
             return None
         finally:
-            self.listeners.pop(listener_id, None)
+            if self.listeners.get(listener_id) is future:
+                self.listeners.pop(listener_id, None)
 
     async def start(self, **kwargs):
         logger.info('Setting up your database, please wait a moment...')
@@ -143,5 +144,6 @@ class Bot(Client):
                 yield message
                 current += 1
 
-app = Bot()
-app.run()
+if __name__ == "__main__":
+    app = Bot()
+    app.run()
