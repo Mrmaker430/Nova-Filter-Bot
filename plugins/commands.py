@@ -485,7 +485,7 @@ async def img_2_link(bot, message):
         return await message.reply('❌ <b>Invalid Media!</b>\n\n<blockquote>Please reply to a valid photo or PNG/JPG image.</blockquote>')
     text = await message.reply_text(text="ᴘʀᴏᴄᴇssɪɴɢ....")   
     path = await reply_to_message.download()  
-    response = upload_image(path)
+    response = await asyncio.to_thread(upload_image, path)
     if not response:
          await text.edit_text(text="❌ <b>Upload Failed!</b>\n\n<blockquote>Could not upload image to Telegraph. Please try again.</blockquote>")
          return    

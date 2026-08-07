@@ -124,9 +124,8 @@ class Bot(Client):
         asyncio.create_task(check_premium(self))
         try:
             await self.send_message(chat_id=LOG_CHANNEL, text=f"<b>{me.mention} Restarted! 🤖</b>")
-        except:
-            logger.error("Make sure bot admin in LOG_CHANNEL, exiting now")
-            exit()
+        except Exception as log_err:
+            logger.error(f"Failed to send restart message to LOG_CHANNEL: {log_err}. Please ensure the bot is an administrator in the LOG_CHANNEL.")
         logger.info(f"Bot [@{me.username}] and webapp [{URL}] is started now ✓")
 
     async def stop(self, **kwargs):

@@ -7,8 +7,8 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 async def banned_users(_, __, message: Message):
     return (
-        message.from_user is not None or not message.sender_chat
-    ) and message.from_user.id in temp.BANNED_USERS
+        message.from_user is not None and message.from_user.id in temp.BANNED_USERS
+    )
 
 banned_user = filters.create(banned_users)
 

@@ -1,6 +1,7 @@
 import os
 import requests
 import logging
+import asyncio
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 from info import FILMS_LINK
@@ -97,7 +98,7 @@ async def generate_movie_poster(movie_data):
     backdrop_img = None
     if movie_data.get('backdrop'):
         try:
-            resp = requests.get(movie_data['backdrop'], timeout=5)
+            resp = await asyncio.to_thread(requests.get, movie_data['backdrop'], timeout=5)
             if resp.status_code == 200:
                 backdrop_img = Image.open(BytesIO(resp.content))
         except Exception as e:
@@ -105,7 +106,7 @@ async def generate_movie_poster(movie_data):
 
     if not backdrop_img and movie_data.get('poster'):
         try:
-            resp = requests.get(movie_data['poster'], timeout=5)
+            resp = await asyncio.to_thread(requests.get, movie_data['poster'], timeout=5)
             if resp.status_code == 200:
                 backdrop_img = Image.open(BytesIO(resp.content))
         except Exception as e:
@@ -127,7 +128,7 @@ async def generate_movie_poster(movie_data):
     poster_loaded = False
     if movie_data.get('poster'):
         try:
-            resp = requests.get(movie_data['poster'], timeout=5)
+            resp = await asyncio.to_thread(requests.get, movie_data['poster'], timeout=5)
             if resp.status_code == 200:
                 post_img = Image.open(BytesIO(resp.content))
                 post_img = ImageOps.fit(post_img, (340, 510))

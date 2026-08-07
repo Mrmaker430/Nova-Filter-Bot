@@ -265,40 +265,57 @@ async def is_subscribed(bot, query):
     btn = []
     user_id = query.from_user.id
     if FORCE_SUB_CHANNELS:
-        for id in FORCE_SUB_CHANNELS.split(' '):
-            chat = await bot.get_chat(int(id))
+        for id_str in FORCE_SUB_CHANNELS.split(' '):
+            if not id_str.strip():
+                continue
             try:
-                member = await bot.get_chat_member(int(id), user_id)
-                if member.status in [enums.ChatMemberStatus.BANNED, enums.ChatMemberStatus.LEFT]:
+                chat_id = int(id_str)
+                chat = await bot.get_chat(chat_id)
+                try:
+                    member = await bot.get_chat_member(chat_id, user_id)
+                    if member.status in [enums.ChatMemberStatus.BANNED, enums.ChatMemberStatus.LEFT]:
+                        btn.append(
+                            [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
+                        )
+                except UserNotParticipant:
                     btn.append(
                         [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
                     )
-            except UserNotParticipant:
-                btn.append(
-                    [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
-                )
+            except Exception as e:
+                logger.error(f"Error checking force subscription for channel {id_str}: {e}")
+
     if REQUEST_FORCE_SUB_CHANNEL and not await db.find_join_req(user_id):
-        id = REQUEST_FORCE_SUB_CHANNEL
-        chat = await bot.get_chat(int(id))
         try:
-            member = await bot.get_chat_member(int(id), user_id)
-            if member.status in [enums.ChatMemberStatus.BANNED, enums.ChatMemberStatus.LEFT]:
-                url = await bot.create_chat_invite_link(int(id), creates_join_request=True)
-                btn.append(
-                    [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
-                )
-        except UserNotParticipant:
-            url = await bot.create_chat_invite_link(int(id), creates_join_request=True)
-            btn.append(
-                [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
-            )
+            chat_id = int(REQUEST_FORCE_SUB_CHANNEL)
+            chat = await bot.get_chat(chat_id)
+            try:
+                member = await bot.get_chat_member(chat_id, user_id)
+                if member.status in [enums.ChatMemberStatus.BANNED, enums.ChatMemberStatus.LEFT]:
+                    url = await bot.create_chat_invite_link(chat_id, creates_join_request=True)
+                    btn.append(
+                        [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
+                    )
+            except UserNotParticipant:
+                try:
+                    url = await bot.create_chat_invite_link(chat_id, creates_join_request=True)
+                    btn.append(
+                        [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
+                    )
+                except Exception as e:
+                    logger.error(f"Error creating invite link for request channel {chat_id}: {e}")
+        except Exception as e:
+            logger.error(f"Error checking request force subscription for channel {REQUEST_FORCE_SUB_CHANNEL}: {e}")
     return btn
 
 
 def upload_image(file_path):
     with open(file_path, 'rb') as f:
         files = {'files[]': f}
-        response = requests.post("https://uguu.se/upload", files=files)
+        try:
+            response = requests.post("https://uguu.se/upload", files=files, timeout=5)
+        except Exception as e:
+            logger.error(f"Error uploading image to uguu.se: {e}")
+            return None
 
     if response.status_code == 200:
         try:
@@ -346,7 +363,12 @@ async def get_poster(query, bulk=False, id=False, file=None):
             "query": title
         }
 
-        res = requests.get(url, params=params).json()
+        try:
+            resp = await asyncio.to_thread(requests.get, url, params=params, timeout=5)
+            res = resp.json()
+        except Exception as e:
+            logger.error(f"Error fetching data from TMDB: {e}")
+            return None
 
         results = [
             r for r in res.get("results", [])
@@ -385,26 +407,46 @@ async def get_poster(query, bulk=False, id=False, file=None):
     else:
         tmdb_id = query
 
-        movie_test = requests.get(
-            f"{TMDB_BASE}/movie/{tmdb_id}",
-            params={"api_key": TMDB_API_KEY}
-        )
+        try:
+            movie_test = await asyncio.to_thread(
+                requests.get,
+                f"{TMDB_BASE}/movie/{tmdb_id}",
+                params={"api_key": TMDB_API_KEY},
+                timeout=5
+            )
+        except Exception as e:
+            logger.error(f"Error checking TMDB movie {tmdb_id}: {e}")
+            return None
 
         if movie_test.status_code == 200:
             media_type = "movie"
             data = movie_test.json()
         else:
             media_type = "tv"
-            data = requests.get(
-                f"{TMDB_BASE}/tv/{tmdb_id}",
-                params={"api_key": TMDB_API_KEY}
-            ).json()
+            try:
+                resp = await asyncio.to_thread(
+                    requests.get,
+                    f"{TMDB_BASE}/tv/{tmdb_id}",
+                    params={"api_key": TMDB_API_KEY},
+                    timeout=5
+                )
+                data = resp.json()
+            except Exception as e:
+                logger.error(f"Error fetching TMDB TV show {tmdb_id}: {e}")
+                return None
 
     if not id:
-        data = requests.get(
-            f"{TMDB_BASE}/{media_type}/{tmdb_id}",
-            params={"api_key": TMDB_API_KEY}
-        ).json()
+        try:
+            resp = await asyncio.to_thread(
+                requests.get,
+                f"{TMDB_BASE}/{media_type}/{tmdb_id}",
+                params={"api_key": TMDB_API_KEY},
+                timeout=5
+            )
+            data = resp.json()
+        except Exception as e:
+            logger.error(f"Error fetching TMDB detailed media {tmdb_id}: {e}")
+            return None
 
     title = data.get("title") or data.get("name")
 
