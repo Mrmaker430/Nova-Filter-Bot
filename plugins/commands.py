@@ -42,8 +42,8 @@ async def start(client, message):
         wish = get_wish()
         user = message.from_user.mention if message.from_user else "Dear"
         btn = [[
-            InlineKeyboardButton('📢 Updates Channel', url=UPDATES_LINK),
-            InlineKeyboardButton('💬 Support Group', url=SUPPORT_LINK)
+            InlineKeyboardButton('📢 ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ', url=UPDATES_LINK),
+            InlineKeyboardButton('💬 ꜱᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ', url=SUPPORT_LINK)
         ]]
         await message.reply(text=f"👋 <b>Hello {user}, <i>{wish}</i>!</b>\n\n<blockquote>✨ How can I help your group today? I am fully active and ready to deliver instant cloud files!</blockquote>", reply_markup=InlineKeyboardMarkup(btn))
         return 
@@ -64,22 +64,15 @@ async def start(client, message):
 
     if (len(message.command) != 2) or (len(message.command) == 2 and message.command[1] == 'start'):
         buttons = [[
-            InlineKeyboardButton("➕ Add Me To Your Group", url=f'http://t.me/{temp.U_NAME}?startgroup=start', style=enums.ButtonStyle.PRIMARY)
+            InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url=f'http://t.me/{temp.U_NAME}?startgroup=start', style=enums.ButtonStyle.PRIMARY)
         ],[
-            InlineKeyboardButton('📢 Updates', url=UPDATES_LINK),
-            InlineKeyboardButton('💬 Support', url=SUPPORT_LINK)
+            InlineKeyboardButton('📢 ᴜᴘᴅᴀᴛᴇꜱ', url=UPDATES_LINK),
+            InlineKeyboardButton('💬 ꜱᴜᴘᴘᴏʀᴛ', url=SUPPORT_LINK)
         ],[
-            InlineKeyboardButton('💡 Help', callback_data='help'),
-            InlineKeyboardButton('ℹ️ About', callback_data='about')
-        ],[
-            InlineKeyboardButton('💎 Buy Premium', url=f"https://t.me/{temp.U_NAME}?start=premium"),
-            InlineKeyboardButton('🔍 Search Inline', switch_inline_query_current_chat=''),
-        ],[
-            InlineKeyboardButton('🎬 Popular Movies', url="https://www.themoviedb.org/movie"),
-            InlineKeyboardButton('📺 Popular TV Shows', url="https://www.themoviedb.org/tv")
+            InlineKeyboardButton('💎 ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ', url=f"https://t.me/{temp.U_NAME}?start=premium")
         ]]
         if URL:
-            buttons.append([InlineKeyboardButton('🌐 Mini WebApp', style=enums.ButtonStyle.SUCCESS, web_app=WebAppInfo(url=URL))])
+            buttons.append([InlineKeyboardButton('🌐 ᴍɪɴɪ ᴡᴇʙᴀᴘᴘ', style=enums.ButtonStyle.SUCCESS, web_app=WebAppInfo(url=URL))])
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply_photo(
             photo=random.choice(PICS),

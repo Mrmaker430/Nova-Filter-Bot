@@ -967,22 +967,15 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data == "start":
         buttons = [[
-            InlineKeyboardButton("➕ Add Me To Your Group", url=f'http://t.me/{temp.U_NAME}?startgroup=start', style=enums.ButtonStyle.PRIMARY)
+            InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url=f'http://t.me/{temp.U_NAME}?startgroup=start', style=enums.ButtonStyle.PRIMARY)
         ],[
-            InlineKeyboardButton('📢 Updates', url=UPDATES_LINK),
-            InlineKeyboardButton('💬 Support', url=SUPPORT_LINK)
+            InlineKeyboardButton('📢 ᴜᴘᴅᴀᴛᴇꜱ', url=UPDATES_LINK),
+            InlineKeyboardButton('💬 ꜱᴜᴘᴘᴏʀᴛ', url=SUPPORT_LINK)
         ],[
-            InlineKeyboardButton('💡 Help', callback_data='help'),
-            InlineKeyboardButton('ℹ️ About', callback_data='about')
-        ],[
-            InlineKeyboardButton('💎 Buy Premium', url=f"https://t.me/{temp.U_NAME}?start=premium"),
-            InlineKeyboardButton('🔍 Search Inline', switch_inline_query_current_chat=''),
-        ],[
-            InlineKeyboardButton('🎬 Popular Movies', url="https://www.themoviedb.org/movie"),
-            InlineKeyboardButton('📺 Popular TV Shows', url="https://www.themoviedb.org/tv")
+            InlineKeyboardButton('💎 ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ', url=f"https://t.me/{temp.U_NAME}?start=premium")
         ]]
         if URL:
-            buttons.append([InlineKeyboardButton('🌐 Mini WebApp', style=enums.ButtonStyle.SUCCESS, web_app=WebAppInfo(url=URL))])
+            buttons.append([InlineKeyboardButton('🌐 ᴍɪɴɪ ᴡᴇʙᴀᴘᴘ', style=enums.ButtonStyle.SUCCESS, web_app=WebAppInfo(url=URL))])
         reply_markup = InlineKeyboardMarkup(buttons)
         await safe_edit_media_caption(
             query,
