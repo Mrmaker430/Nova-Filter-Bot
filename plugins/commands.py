@@ -30,6 +30,29 @@ async def repair_mode_cmd(client, message):
         await db.set_repair_mode(False)
         await message.reply_text("✅ Repair Mode deactivated successfully.")
 
+@Client.on_message(filters.command("movie_update") & filters.incoming & filters.user(ADMINS))
+async def movie_update_cmd(client, message):
+    args = message.text.split()
+    if len(args) == 1:
+        status = await db.get_movie_update_status()
+        status_text = "<b>ENABLED</b> 🟢" if status else "<b>DISABLED</b> 🔴"
+        return await message.reply_text(
+            f"🎬 <b>Movie Update Notifications Status:</b> {status_text}\n\n"
+            "ℹ️ <b>Usage:</b>\n"
+            "• <code>/movie_update on</code> — Enable movie updates\n"
+            "• <code>/movie_update off</code> — Disable movie updates"
+        )
+
+    if len(args) != 2 or args[1].lower() not in ["on", "off"]:
+        return await message.reply_text("ℹ️ <b>Usage:</b> <code>/movie_update on</code> or <code>/movie_update off</code>")
+
+    if args[1].lower() == "on":
+        await db.set_movie_update_status(True)
+        await message.reply_text("✅ <b>Movie Update notifications enabled successfully.</b>")
+    else:
+        await db.set_movie_update_status(False)
+        await message.reply_text("✅ <b>Movie Update notifications disabled successfully.</b>")
+
 @Client.on_message(filters.command("start") & filters.incoming)
 async def start(client, message):
         
@@ -37,7 +60,10 @@ async def start(client, message):
         if not await db.get_chat(message.chat.id):
             total = await client.get_chat_members_count(message.chat.id)
             username = f'@{message.chat.username}' if message.chat.username else 'Private'
-            await client.send_message(LOG_CHANNEL, script.NEW_GROUP_TXT.format(message.chat.title, message.chat.id, username, total))       
+            try:
+                await client.send_message(LOG_CHANNEL, script.NEW_GROUP_TXT.format(message.chat.title, message.chat.id, username, total))
+            except Exception:
+                pass
             await db.add_chat(message.chat.id, message.chat.title)
         wish = get_wish()
         user = message.from_user.mention if message.from_user else "Dear"
@@ -55,7 +81,10 @@ async def start(client, message):
 
     if not await db.is_user_exist(message.from_user.id):
         await db.add_user(message.from_user.id, message.from_user.first_name)
-        await client.send_message(LOG_CHANNEL, script.NEW_USER_TXT.format(message.from_user.mention, message.from_user.id))
+        try:
+            await client.send_message(LOG_CHANNEL, script.NEW_USER_TXT.format(message.from_user.mention, message.from_user.id))
+        except Exception:
+            pass
 
     verify_status = await get_verify_status(message.from_user.id)
     if verify_status['is_verified'] and datetime.now() > verify_status['expire_time']:

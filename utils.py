@@ -94,26 +94,40 @@ async def is_subscribed(bot, query):
     fsub_channels = fsub if fsub else FORCE_SUB_CHANNELS
     if fsub_channels:
         for id in fsub_channels.split(' '):
-            chat = await bot.get_chat(int(id))
+            if not id.strip():
+                continue
             try:
-                await bot.get_chat_member(int(id), query.from_user.id)
-            except UserNotParticipant:
-                btn.append(
-                    [InlineKeyboardButton(f'📢 Join : {chat.title}', url=chat.invite_link)]
-                )
-    req_fsub = await db.get_req_fsub()
-    req_fsub_channel = req_fsub if req_fsub else REQUEST_FORCE_SUB_CHANNEL
-    if req_fsub_channel:
-        for id in req_fsub_channel.split(' '):
-            if not await db.find_join_req(query.from_user.id, int(id)):
                 chat = await bot.get_chat(int(id))
                 try:
                     await bot.get_chat_member(int(id), query.from_user.id)
                 except UserNotParticipant:
-                    url = await bot.create_chat_invite_link(int(id), creates_join_request=True)
+                    invite_link = chat.invite_link or f"https://t.me/c/{str(id).replace('-100', '')}"
                     btn.append(
-                        [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
+                        [InlineKeyboardButton(f'📢 Join : {chat.title}', url=invite_link)]
                     )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Error checking fsub for channel {id}: {e}")
+
+    req_fsub = await db.get_req_fsub()
+    req_fsub_channel = req_fsub if req_fsub else REQUEST_FORCE_SUB_CHANNEL
+    if req_fsub_channel:
+        for id in req_fsub_channel.split(' '):
+            if not id.strip():
+                continue
+            try:
+                if not await db.find_join_req(query.from_user.id, int(id)):
+                    chat = await bot.get_chat(int(id))
+                    try:
+                        await bot.get_chat_member(int(id), query.from_user.id)
+                    except UserNotParticipant:
+                        url = await bot.create_chat_invite_link(int(id), creates_join_request=True)
+                        btn.append(
+                            [InlineKeyboardButton(f'✨ Request : {chat.title}', url=url.invite_link)]
+                        )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Error checking req_fsub for channel {id}: {e}")
     return btn
 
 
