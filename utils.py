@@ -1,6 +1,6 @@
 from pyrogram.errors import UserNotParticipant, FloodWait
 from info import FORCE_SUB_CHANNELS, LONG_IMDB_DESCRIPTION, ADMINS, IS_PREMIUM, TIME_ZONE, TMDB_API_KEY, USE_CAPTION_FILTER, UPDATES_SEND_CHANNEL, FILMS_LINK, REQUEST_FORCE_SUB_CHANNEL
-import asyncio
+import asyncio, os
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, LinkPreviewOptions
 from pyrogram import enums
 import re
@@ -72,8 +72,17 @@ async def send_update(title, year):
         countries=data['countries']
     )
     
-    if data.get('poster'):
-        await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=data.get('poster'), caption=caption, reply_markup=InlineKeyboardMarkup(btn))
+    poster_path = generate_poster_image(data)
+    photo = poster_path if poster_path else data.get('poster')
+    if photo:
+        try:
+            await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=photo, caption=caption, reply_markup=InlineKeyboardMarkup(btn))
+        finally:
+            if poster_path and os.path.exists(poster_path):
+                try:
+                    os.remove(poster_path)
+                except Exception:
+                    pass
     else:
         await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=caption, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True))
 
@@ -201,6 +210,26 @@ async def get_poster(query):
     if data.get("poster_path"):
         poster = f"https://image.tmdb.org/t/p/original{data['poster_path']}"
 
+    backdrop = None
+    if data.get("backdrop_path"):
+        backdrop = f"https://image.tmdb.org/t/p/w1280{data['backdrop_path']}"
+
+    logo = None
+    try:
+        img_res = requests.get(
+            f"{TMDB_BASE}/{media_type}/{tmdb_id}/images",
+            params={"api_key": TMDB_API_KEY, "include_image_language": "en,null"}
+        ).json()
+        logos = img_res.get("logos", [])
+        if logos:
+            en_logos = [l for l in logos if l.get("iso_639_1") == "en"]
+            selected_logo = en_logos[0] if en_logos else logos[0]
+            if selected_logo.get("file_path"):
+                logo = f"https://image.tmdb.org/t/p/w500{selected_logo['file_path']}"
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error fetching tmdb logo: {e}")
+
     release_date = data.get("release_date") or data.get("first_air_date") or "N/A"
 
     genres_list = data.get("genres", [])
@@ -238,9 +267,240 @@ async def get_poster(query):
         "rating": rating,
         "votes": votes,
         "poster": poster,
+        "backdrop": backdrop,
+        "logo": logo,
         "plot": plot,
         "url": f"https://www.themoviedb.org/{media_type}/{tmdb_id}"
     }
+
+
+def generate_poster_image(data, channel_handle=None):
+    if not data:
+        return None
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+        import io, tempfile, requests
+        from info import UPDATES_LINK
+
+        if not channel_handle:
+            if UPDATES_LINK and "t.me/" in UPDATES_LINK:
+                username = UPDATES_LINK.split("t.me/")[-1].strip("/@")
+                channel_handle = f"@{username}"
+            elif temp.U_NAME:
+                channel_handle = f"@{temp.U_NAME}"
+            else:
+                channel_handle = "@cholochhitro"
+        if not channel_handle.startswith("@"):
+            channel_handle = f"@{channel_handle}"
+
+        W, H = 1920, 1080
+        canvas = Image.new("RGBA", (W, H), (15, 15, 15, 255))
+
+        # 1. Backdrop Image
+        backdrop_url = data.get('backdrop')
+        if backdrop_url:
+            try:
+                resp = requests.get(backdrop_url, timeout=8)
+                if resp.status_code == 200:
+                    bg = Image.open(io.BytesIO(resp.content)).convert("RGBA")
+                    bg_ratio = bg.width / bg.height
+                    target_ratio = W / H
+                    if bg_ratio > target_ratio:
+                        new_w = int(H * bg_ratio)
+                        bg = bg.resize((new_w, H), Image.Resampling.LANCZOS)
+                        left = (new_w - W) // 2
+                        bg = bg.crop((left, 0, left + W, H))
+                    else:
+                        new_h = int(W / bg_ratio)
+                        bg = bg.resize((W, new_h), Image.Resampling.LANCZOS)
+                        top = (new_h - H) // 2
+                        bg = bg.crop((0, top, W, top + H))
+                    canvas.paste(bg, (0, 0))
+            except Exception:
+                pass
+
+        # Dark overlay
+        overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        draw_ov = ImageDraw.Draw(overlay)
+        for x in range(W):
+            alpha = int(220 * (1 - (x / W) ** 0.8) + 80)
+            alpha = min(245, max(40, alpha))
+            draw_ov.line([(x, 0), (x, H)], fill=(10, 15, 12, alpha))
+
+        for y in range(H // 2, H):
+            alpha = int(180 * ((y - H // 2) / (H // 2))**1.5)
+            draw_ov.line([(0, y), (W, y)], fill=(5, 5, 5, alpha))
+
+        canvas = Image.alpha_composite(canvas, overlay)
+
+        # 2. Mini Poster (Bottom Left)
+        poster_url = data.get('poster')
+        poster_w, poster_h = 330, 490
+        poster_x, poster_y = 75, H - poster_h - 75
+
+        if poster_url:
+            try:
+                p_resp = requests.get(poster_url, timeout=8)
+                if p_resp.status_code == 200:
+                    p_img = Image.open(io.BytesIO(p_resp.content)).convert("RGBA")
+                    p_img = p_img.resize((poster_w, poster_h), Image.Resampling.LANCZOS)
+
+                    radius = 28
+                    mask = Image.new("L", (poster_w, poster_h), 0)
+                    draw_m = ImageDraw.Draw(mask)
+                    draw_m.rounded_rectangle([(0, 0), (poster_w, poster_h)], radius=radius, fill=255)
+
+                    border_img = Image.new("RGBA", (poster_w + 8, poster_h + 8), (255, 255, 255, 230))
+                    b_mask = Image.new("L", (poster_w + 8, poster_h + 8), 0)
+                    draw_bm = ImageDraw.Draw(b_mask)
+                    draw_bm.rounded_rectangle([(0, 0), (poster_w + 8, poster_h + 8)], radius=radius + 4, fill=255)
+
+                    canvas.paste(border_img, (poster_x - 4, poster_y - 4), b_mask)
+                    canvas.paste(p_img, (poster_x, poster_y), mask)
+            except Exception:
+                pass
+
+        content_x = poster_x + poster_w + 55
+        content_max_w = W - content_x - 80
+
+        # 3. Logo Title
+        logo_url = data.get('logo')
+        logo_placed = False
+        logo_y = poster_y + 10
+        logo_max_h = 160
+
+        if logo_url:
+            try:
+                l_resp = requests.get(logo_url, timeout=8)
+                if l_resp.status_code == 200:
+                    l_img = Image.open(io.BytesIO(l_resp.content)).convert("RGBA")
+                    l_w, l_h = l_img.size
+                    scale = min(content_max_w / l_w, logo_max_h / l_h)
+                    new_lw = int(l_w * scale)
+                    new_lh = int(l_h * scale)
+                    l_img = l_img.resize((new_lw, new_lh), Image.Resampling.LANCZOS)
+
+                    canvas.paste(l_img, (content_x, logo_y), l_img)
+                    logo_placed = True
+                    badge_y = logo_y + new_lh + 35
+            except Exception:
+                pass
+
+        # Fonts
+        font_bold_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+        try:
+            b_font = ImageFont.truetype(font_bold_path, 24)
+            plot_font = ImageFont.truetype(font_bold_path, 28)
+            title_font = ImageFont.truetype(font_bold_path, 68)
+        except Exception:
+            b_font = ImageFont.load_default()
+            plot_font = ImageFont.load_default()
+            title_font = ImageFont.load_default()
+
+        if not logo_placed:
+            draw = ImageDraw.Draw(canvas)
+            title_text = str(data.get('title', '')).upper()
+            draw.text((content_x, logo_y), title_text, font=title_font, fill=(255, 255, 255, 255))
+            badge_y = logo_y + 90
+
+        # 4. Badges / Pills Row
+        draw = ImageDraw.Draw(canvas)
+        curr_x = content_x
+        b_height = 48
+        b_radius = 12
+
+        # 4a. Rating Badge
+        rating_val = str(data.get('rating', 'N/A'))
+        if rating_val != 'N/A':
+            try:
+                rating_val = str(round(float(rating_val), 1))
+            except Exception:
+                pass
+        star_txt = f"★ {rating_val}"
+        star_bbox = b_font.getbbox(star_txt)
+        star_w = star_bbox[2] - star_bbox[0] + 30
+        draw.rounded_rectangle([(curr_x, badge_y), (curr_x + star_w, badge_y + b_height)], radius=b_radius, fill=(30, 30, 30, 230))
+        draw.text((curr_x + 15, badge_y + 10), "★", font=b_font, fill=(255, 193, 7, 255))
+        draw.text((curr_x + 42, badge_y + 10), rating_val, font=b_font, fill=(255, 255, 255, 255))
+        curr_x += star_w + 18
+
+        # 4b. IMDb Badge
+        imdb_txt = "IMDb"
+        imdb_bbox = b_font.getbbox(imdb_txt)
+        imdb_w = imdb_bbox[2] - imdb_bbox[0] + 30
+        draw.rounded_rectangle([(curr_x, badge_y), (curr_x + imdb_w, badge_y + b_height)], radius=b_radius, fill=(226, 182, 22, 255))
+        draw.text((curr_x + 15, badge_y + 10), imdb_txt, font=b_font, fill=(0, 0, 0, 255))
+        curr_x += imdb_w + 18
+
+        # 4c. Year Badge
+        year_val = str(data.get('year', '') or '')
+        if year_val:
+            year_bbox = b_font.getbbox(year_val)
+            year_w = year_bbox[2] - year_bbox[0] + 30
+            draw.rounded_rectangle([(curr_x, badge_y), (curr_x + year_w, badge_y + b_height)], radius=b_radius, fill=(229, 9, 20, 255))
+            draw.text((curr_x + 15, badge_y + 10), year_val, font=b_font, fill=(255, 255, 255, 255))
+            curr_x += year_w + 18
+
+        # 4d. Genre Badge
+        genres_raw = data.get('genres', '')
+        first_genre = 'DRAMA'
+        if '#' in str(genres_raw):
+            first_genre = str(genres_raw).split('#')[1].split(',')[0].strip().upper()
+        elif genres_raw and genres_raw != 'N/A':
+            first_genre = str(genres_raw).split(',')[0].strip().upper()
+        genre_bbox = b_font.getbbox(first_genre)
+        genre_w = genre_bbox[2] - genre_bbox[0] + 30
+        draw.rounded_rectangle([(curr_x, badge_y), (curr_x + genre_w, badge_y + b_height)], radius=b_radius, fill=(230, 81, 0, 255))
+        draw.text((curr_x + 15, badge_y + 10), first_genre, font=b_font, fill=(255, 255, 255, 255))
+        curr_x += genre_w + 18
+
+        # 4e. Channel Badge
+        chn_txt = f"✈ {channel_handle}"
+        chn_bbox = b_font.getbbox(chn_txt)
+        chn_w = chn_bbox[2] - chn_bbox[0] + 30
+        draw.rounded_rectangle([(curr_x, badge_y), (curr_x + chn_w, badge_y + b_height)], radius=b_radius, fill=(0, 136, 204, 255))
+        draw.text((curr_x + 15, badge_y + 10), chn_txt, font=b_font, fill=(255, 255, 255, 255))
+
+        # 5. Plot / Overview
+        plot_y = badge_y + b_height + 30
+        plot_text = str(data.get('plot', '') or '')
+        if plot_text and plot_text != 'N/A':
+            words = plot_text.split()
+            lines = []
+            curr_line = ""
+            for w in words:
+                test_line = f"{curr_line} {w}".strip()
+                test_w = plot_font.getbbox(test_line)[2] - plot_font.getbbox(test_line)[0]
+                if test_w <= content_max_w:
+                    curr_line = test_line
+                else:
+                    lines.append(curr_line)
+                    curr_line = w
+                    if len(lines) >= 2:
+                        break
+            if curr_line and len(lines) < 3:
+                if len(lines) == 2 and len(words) > len(" ".join(lines).split()):
+                    lines.append(curr_line + "...")
+                else:
+                    lines.append(curr_line)
+
+            line_y = plot_y
+            for l in lines[:3]:
+                draw.text((content_x, line_y), l, font=plot_font, fill=(240, 240, 240, 240))
+                line_y += 42
+
+        # Save to temporary file
+        temp_file = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
+        output_path = temp_file.name
+        temp_file.close()
+
+        rgb_canvas = canvas.convert("RGB")
+        rgb_canvas.save(output_path, quality=95)
+        return output_path
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error generating poster image: {e}")
+        return None
 
 async def is_check_admin(bot, chat_id, user_id):
     try:
