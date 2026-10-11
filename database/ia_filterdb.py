@@ -46,8 +46,7 @@ async def setup_database():
             )
             logger.info("DATA_DATABASE_URL update indexes recreated successfully.")
         else:
-            logger.exception(e)
-            exit()
+            logger.warning(f"Failed to create DATA_DATABASE_URL index: {e}")
 
     try:
         await collection.create_index([("file_name", TEXT), ("caption", TEXT)], name="file_name_caption_text")
@@ -64,8 +63,7 @@ async def setup_database():
             else:
                 logger.info('FILES_DATABASE_URL quota is full, relying on SECOND_FILES_DATABASE_URL')
         else:
-            logger.exception(e)
-            exit() 
+            logger.warning(f"Failed to create FILES_DATABASE_URL index: {e}")
 
     if SECOND_FILES_DATABASE_URL and second_collection is not None:
         try:
@@ -78,8 +76,7 @@ async def setup_database():
                 await second_collection.create_index([("file_name", TEXT), ("caption", TEXT)], name="file_name_caption_text")
                 logger.info("SECOND_FILES_DATABASE_URL indexes recreated successfully.")
             else:
-                logger.exception(e)
-                exit()
+                logger.warning(f"Failed to create SECOND_FILES_DATABASE_URL index: {e}")
 
 
 async def second_db_count_documents():
@@ -93,6 +90,9 @@ async def db_count_documents():
 
 async def trigger_update_if_new(title, year):
     if not title:
+        return
+    from database.users_chats_db import db as users_db
+    if not await users_db.get_movie_update_status():
         return
     normalized_title = str(title).strip().lower()
     try:

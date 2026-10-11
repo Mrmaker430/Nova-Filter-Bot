@@ -160,7 +160,7 @@ def filter_files(all_files, select_dict):
 
 
 
-@Client.on_message(filters.private & filters.text & filters.incoming)
+@Client.on_message(filters.private & filters.text & filters.incoming & ~filters.regex(r"^/"))
 async def pm_search(client, message):
     if message.text.startswith("/"):
         return
@@ -187,8 +187,11 @@ async def pm_search(client, message):
 
             
 
-@Client.on_message(filters.group & filters.text & filters.incoming)
+@Client.on_message(filters.group & filters.text & filters.incoming & ~filters.regex(r"^/"))
 async def group_search(client, message):
+    if message.text.startswith("/") or re.findall(r'https?://\S+|www\.\S+|t\.me/\S+|@\w+', message.text):
+        return
+
     chat_id = message.chat.id
     user_id = message.from_user.id if message and message.from_user else 0
 
@@ -203,9 +206,6 @@ async def group_search(client, message):
                     InlineKeyboardButton("📍 Here", url=FILMS_LINK)
                 ]]
                 await message.reply_text(f'Total {len(files)} results found in this group', reply_markup=InlineKeyboardMarkup(btn))
-            return
-            
-        if message.text.startswith("/") or re.findall(r'https?://\S+|www\.\S+|t\.me/\S+|@\w+', message.text):
             return
 
         s = await message.reply(f"<b><i>🔎 `{message.text}` searching...</i></b>")

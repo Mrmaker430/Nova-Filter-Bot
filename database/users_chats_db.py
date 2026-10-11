@@ -250,6 +250,15 @@ class Database:
     async def set_repair_mode(self, value: bool):
         await self.stg.update_one({'id': BOT_ID}, {'$set': {'REPAIR_MODE': value}}, upsert=True)
 
+    async def get_movie_update_status(self):
+        stg = await self.stg.find_one({'id': BOT_ID})
+        if not stg:
+            return True
+        return stg.get('MOVIE_UPDATE', True)
+
+    async def set_movie_update_status(self, value: bool):
+        await self.stg.update_one({'id': BOT_ID}, {'$set': {'MOVIE_UPDATE': value}}, upsert=True)
+
     async def get_fsub(self):
         stg = await self.stg.find_one({'id': BOT_ID})
         if not stg:
