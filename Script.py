@@ -79,10 +79,14 @@ class script(object):
 🗣️ <b>Requested by</b>: {mention}
 ⚡ <b>Powered by</b>: <b>{group_title}</b>"""
 
-    FILE_CAPTION = """📁 <b>{file_name}</b>
+    FILE_CAPTION = """<b>‣ ɴᴀᴍᴇ : </b><i>{file_name}</i>
 
-<blockquote>⚠️ <i>Please click the ✖️ Close button below once you have saved or downloaded this file!</i></blockquote>"""
+<b>‣ ꜱɪᴢᴇ : </b>{file_size}
 
+<blockquote expandable>⚠️ <i>Sometimes bot paste different cover in the files don't worry always trust the title.</i></blockquote>
+
+<b>🍁 ʙʏ : <a href="https://t.me/cholochhitro">[ ᴄʜᴏʟᴏᴄʜʜɪᴛʀᴏ ]</a></b>"""
+    
     WELCOME_TEXT = """👋 <b>Hello {mention},</b>
 
 <blockquote>✨ Welcome to <b>{title}</b>! We are glad to have you here. Type any movie or series name below to get instant download links! 💞</blockquote>"""
@@ -170,11 +174,13 @@ class script(object):
 🧑‍💻 <b>Lead Developer</b>: @Hansaka_Anuhas</blockquote>"""
 
 
-    NEW_ADDED_TEMPLATE = """✅ <b>New Content Added</b>
+    NEW_ADDED_TEMPLATE = """<blockquote>📫 𝖭𝖤𝖶 𝖥𝖨𝖫𝖤 𝖠𝖣𝖣𝖤𝖣 ✅</blockquote>
 
-<blockquote>🏷️ <b>Title</b>: <a href="{url}">{title}</a>
-🎭 <b>Genres</b>: {genres}
-📆 <b>Year</b>: {year}
-🌟 <b>Rating</b>: <code>{rating} / 10</code>
-☀️ <b>Languages</b>: {languages}
-⏱️ <b>RunTime</b>: <code>{runtime} Min</code></blockquote>"""
+🏷️ <b>Tɪᴛʟᴇ: {title} [ <a href="{url}">Mᴏʀᴇ Dᴇᴛᴀɪʟs</a> ]
+
+🎭 Gᴇɴʀᴇs: {genres}
+📆 Yᴇᴀʀ: {year}
+🌟 Rᴀᴛɪɴɢ: <code>{rating} / 10</code>
+
+☀️ Aᴜᴅɪᴏ: {languages}
+⏱️ RunTime: <code>{runtime}</code></b>"""
