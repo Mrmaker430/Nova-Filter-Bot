@@ -2,7 +2,7 @@ from info import ADMINS
 from speedtest import Speedtest, ConfigRetrievalError, SpeedtestBestServerFailure
 from pyrogram import Client, filters, enums
 from pyrogram.errors import UserNotParticipant
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyParameters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from utils import get_size
 from datetime import datetime
 import os
@@ -115,7 +115,6 @@ async def who_is(client, message):
         )
         await message.reply_photo(
             photo=local_user_photo,
-            reply_parameters=ReplyParameters(message_id=message.id),
             caption=message_out_str,
             parse_mode=enums.ParseMode.HTML,
             disable_notification=True
@@ -124,7 +123,6 @@ async def who_is(client, message):
     else:
         await message.reply_text(
             text=message_out_str,
-            reply_parameters=ReplyParameters(message_id=message.id),
             parse_mode=enums.ParseMode.HTML,
             disable_notification=True
         )
@@ -195,7 +193,7 @@ async def download_video(client, message):
             caption=f"🎬 **{title}**",
             duration=duration,
             thumb=thumbnail_file,
-            reply_parameters=ReplyParameters(message_id=message.id),
+            reply_to_message_id=message.id,
         )
 
         await status_msg.delete()

@@ -7,7 +7,7 @@ from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidD
 from Script import script
 from datetime import datetime, timedelta
 from info import AUTO_FILTER, PM_SEARCH, VERIFY_TUTORIAL, IS_PREMIUM, PICS, TUTORIAL, TUTORIAL_NAME, SHORTLINK_API, SHORTLINK_URL, OWNER_USERNAME, SECOND_FILES_DATABASE_URL, ADMINS, URL, MAX_BTN, BIN_CHANNEL, IS_STREAM, DELETE_TIME, FILMS_LINK, LOG_CHANNEL, SUPPORT_GROUP, SUPPORT_LINK, UPDATES_LINK, LANGUAGES, QUALITY
-from pyrogram.types import ReplyParameters, WebAppInfo, PreCheckoutQuery, Message, LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto, LinkPreviewOptions
+from pyrogram.types import WebAppInfo, PreCheckoutQuery, Message, LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto, LinkPreviewOptions
 from pyrogram import Client, filters, enums
 from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, get_imdb_suggestions, temp, get_settings, save_group_settings, render_list_page
 from database.users_chats_db import db
@@ -171,7 +171,7 @@ async def pm_search(client, message):
     if await is_premium(message.from_user.id, client):
         if not AUTO_FILTER:
             return await message.reply_text('⚠️ Auto filter was disabled!')
-        s = await message.reply(f"<b><i>🔎 `{message.text}` searching...</i></b>", reply_parameters=ReplyParameters(message_id=message.id))
+        s = await message.reply(f"<b><i>🔎 `{message.text}` searching...</i></b>")
         await auto_filter(client, message, s)
     else:
         files = await get_search_results(message.text)
@@ -1733,7 +1733,7 @@ async def auto_filter(client, msg, s, spoll=False):
     if imdb and imdb.get('poster'):
         await s.delete()
         try:
-            k = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024] + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML, reply_parameters=ReplyParameters(message_id=message.id))
+            k = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024] + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML)
             if settings["auto_delete"]:
                 await asyncio.sleep(auto_del_time)
                 await k.delete()
@@ -1742,7 +1742,7 @@ async def auto_filter(client, msg, s, spoll=False):
                 except:
                     pass
         except Exception as e:
-            k = await message.reply_text(cap + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=enums.ParseMode.HTML, reply_parameters=ReplyParameters(message_id=message.id))
+            k = await message.reply_text(cap + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=enums.ParseMode.HTML)
             if settings["auto_delete"]:
                 await asyncio.sleep(auto_del_time)
                 await k.delete()
