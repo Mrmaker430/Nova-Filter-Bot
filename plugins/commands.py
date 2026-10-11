@@ -7,7 +7,7 @@ from time import monotonic
 from Script import script
 from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, LinkPreviewOptions, WebAppInfo
-from database.ia_filterdb import db_count_documents, second_db_count_documents, get_file_details, delete_files
+from database.ia_filterdb import db_count_documents, second_db_count_documents, get_file_details, delete_files, delete_all_files
 from database.users_chats_db import db
 from datetime import datetime, timedelta
 from info import REQUESTS_CHANNEL, PREMIUM_PLANS, EFFECT_IDS, OWNER_USERNAME, IS_PREMIUM, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME
@@ -98,6 +98,7 @@ async def start(client, message):
             InlineKeyboardButton('📢 ᴜᴘᴅᴀᴛᴇꜱ', url=UPDATES_LINK),
             InlineKeyboardButton('💬 ꜱᴜᴘᴘᴏʀᴛ', url=SUPPORT_LINK)
         ],[
+            InlineKeyboardButton('ℹ️ ʜᴇʟᴘ', callback_data='help'),
             InlineKeyboardButton('💎 ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ', url=f"https://t.me/{temp.U_NAME}?start=premium")
         ]]
         if URL:
@@ -518,6 +519,15 @@ async def delete_file(bot, message):
         InlineKeyboardButton("✖️ Close", callback_data="close_data")
     ]]
     await message.reply_text(f"🗑️ <b>Delete Confirmation</b>\n\nAre you sure you want to delete all files matching: <code>{query}</code> from the database?", reply_markup=InlineKeyboardMarkup(btn))
+
+
+@Client.on_message(filters.command('delete_all') & filters.user(ADMINS))
+async def delete_all_cmd(bot, message):
+    btn = [[
+        InlineKeyboardButton("✅ Yes, Delete All", callback_data="delete_all_confirm"),
+        InlineKeyboardButton("✖️ Close", callback_data="close_data")
+    ]]
+    await message.reply_text("💥 <b>Delete All Confirmation</b>\n\n⚠️ <b>Warning:</b> Are you sure you want to delete ALL indexed files from the database? This action cannot be undone!", reply_markup=InlineKeyboardMarkup(btn))
  
 
 @Client.on_message(filters.command('set_video_cover') & filters.user(ADMINS))

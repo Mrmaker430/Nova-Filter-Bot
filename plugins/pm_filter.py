@@ -11,7 +11,7 @@ from pyrogram.types import WebAppInfo, PreCheckoutQuery, Message, LabeledPrice, 
 from pyrogram import Client, filters, enums
 from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, generate_poster_image, get_imdb_suggestions, temp, get_settings, save_group_settings, render_list_page
 from database.users_chats_db import db
-from database.ia_filterdb import delete_files, db_count_documents, second_db_count_documents, get_search_results
+from database.ia_filterdb import delete_files, delete_all_files, db_count_documents, second_db_count_documents, get_search_results
 from plugins.commands import get_grp_stg
 from urllib.parse import quote
 
@@ -972,6 +972,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             InlineKeyboardButton('📢 ᴜᴘᴅᴀᴛᴇꜱ', url=UPDATES_LINK),
             InlineKeyboardButton('💬 ꜱᴜᴘᴘᴏʀᴛ', url=SUPPORT_LINK)
         ],[
+            InlineKeyboardButton('ℹ️ ʜᴇʟᴘ', callback_data='help'),
             InlineKeyboardButton('💎 ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ', url=f"https://t.me/{temp.U_NAME}?start=premium")
         ]]
         if URL:
@@ -1513,6 +1514,13 @@ async def cb_handler(client: Client, query: CallbackQuery):
             InlineKeyboardButton("💬 Go To PM", url=f"https://t.me/{temp.U_NAME}")
         ]]
         await query.message.edit("💬 <b>Settings panel has been dispatched to your Private Messages!</b>", reply_markup=InlineKeyboardMarkup(btn))
+
+    elif query.data == "delete_all_confirm":
+        if query.from_user.id not in ADMINS:
+            return await query.answer("🚫 Administrator Access Only!", show_alert=True)
+        await query.message.edit("💥 <b>Wiping all indexed files from database...</b>")
+        deleted = await delete_all_files()
+        await query.message.edit(f"🎉 <b>Database Wiped Successfully!</b>\n\nSuccessfully deleted <code>{deleted}</code> files from the database.")
 
     elif query.data.startswith("delete"):
         _, query_ = query.data.split("_", 1)

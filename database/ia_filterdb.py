@@ -236,6 +236,39 @@ async def delete_files(query):
     if SECOND_FILES_DATABASE_URL and second_collection is not None:
         result2 = await second_collection.delete_many(filter_query)
         total_deleted += result2.deleted_count
+
+    try:
+        from utils import temp
+        temp.QUERY_CACHE.clear()
+    except Exception:
+        pass
+    try:
+        from plugins.pm_filter import QUERY_CACHE
+        QUERY_CACHE.clear()
+    except Exception:
+        pass
+
+    return total_deleted
+
+
+async def delete_all_files():
+    result1 = await collection.delete_many({})
+    total_deleted = result1.deleted_count
+
+    if SECOND_FILES_DATABASE_URL and second_collection is not None:
+        result2 = await second_collection.delete_many({})
+        total_deleted += result2.deleted_count
+
+    try:
+        from utils import temp
+        temp.QUERY_CACHE.clear()
+    except Exception:
+        pass
+    try:
+        from plugins.pm_filter import QUERY_CACHE
+        QUERY_CACHE.clear()
+    except Exception:
+        pass
     
     return total_deleted
 
