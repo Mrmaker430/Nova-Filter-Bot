@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from info import AUTO_FILTER, PM_SEARCH, VERIFY_TUTORIAL, IS_PREMIUM, PICS, TUTORIAL, TUTORIAL_NAME, SHORTLINK_API, SHORTLINK_URL, OWNER_USERNAME, SECOND_FILES_DATABASE_URL, ADMINS, URL, MAX_BTN, BIN_CHANNEL, IS_STREAM, DELETE_TIME, FILMS_LINK, LOG_CHANNEL, SUPPORT_GROUP, SUPPORT_LINK, UPDATES_LINK, LANGUAGES, QUALITY
 from pyrogram.types import WebAppInfo, PreCheckoutQuery, Message, LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto, LinkPreviewOptions
 from pyrogram import Client, filters, enums
-from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, get_imdb_suggestions, temp, get_settings, save_group_settings, render_list_page
+from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, generate_poster_image, get_imdb_suggestions, temp, get_settings, save_group_settings, render_list_page
 from database.users_chats_db import db
 from database.ia_filterdb import delete_files, db_count_documents, second_db_count_documents, get_search_results
 from plugins.commands import get_grp_stg
@@ -1723,10 +1723,12 @@ async def auto_filter(client, msg, s, spoll=False):
     CAP[key] = cap
     auto_del_time = settings.get("auto_delete_time", DELETE_TIME)
     del_msg = f"\n\n<b>⚠️ this message will be auto delete after <code>{get_readable_time(auto_del_time)}</code> to avoid copyright issues</b>" if settings["auto_delete"] else ''
-    if imdb and imdb.get('poster'):
+    if imdb and (imdb.get('poster') or imdb.get('backdrop')):
         await s.delete()
+        poster_img = generate_poster_image(imdb)
+        photo = poster_img if poster_img else imdb.get('poster')
         try:
-            k = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024] + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML)
+            k = await message.reply_photo(photo=photo, caption=cap[:1024] + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML)
             if settings["auto_delete"]:
                 await asyncio.sleep(auto_del_time)
                 await k.delete()
@@ -1742,6 +1744,12 @@ async def auto_filter(client, msg, s, spoll=False):
                 try:
                     await message.delete()
                 except:
+                    pass
+        finally:
+            if poster_img and os.path.exists(poster_img):
+                try:
+                    os.remove(poster_img)
+                except Exception:
                     pass
     else:
         k = await s.edit_text(cap + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=enums.ParseMode.HTML)

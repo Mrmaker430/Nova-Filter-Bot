@@ -11,7 +11,7 @@ from database.ia_filterdb import db_count_documents, second_db_count_documents, 
 from database.users_chats_db import db
 from datetime import datetime, timedelta
 from info import REQUESTS_CHANNEL, PREMIUM_PLANS, EFFECT_IDS, OWNER_USERNAME, IS_PREMIUM, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME
-from utils import get_plan_name, get_poster, is_premium, upload_image, get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds, render_list_page
+from utils import get_plan_name, get_poster, generate_poster_image, is_premium, upload_image, get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds, render_list_page
 import PTN
 from pyrogram.file_id import FileId
 
@@ -216,13 +216,34 @@ async def start(client, message):
                 ]]
 
             if (FileId.decode(file['_id'])).file_type == 4:
-                msg = await client.send_video(
-                    chat_id=message.from_user.id,
-                    video=file['_id'],
-                    caption=f_caption,
-                    reply_markup=InlineKeyboardMarkup(btn),
-                    video_cover=await db.get_video_cover()
-                )
+                file_cover = None
+                try:
+                    parsed = PTN.parse(file['file_name'])
+                    title = parsed.get("title")
+                    year = parsed.get("year")
+                    query = f"{title} {year}" if year else title
+                    if query:
+                        p_data = await get_poster(query)
+                        if p_data:
+                            file_cover = generate_poster_image(p_data)
+                except Exception:
+                    pass
+
+                v_cover = file_cover if file_cover else await db.get_video_cover()
+                try:
+                    msg = await client.send_video(
+                        chat_id=message.from_user.id,
+                        video=file['_id'],
+                        caption=f_caption,
+                        reply_markup=InlineKeyboardMarkup(btn),
+                        video_cover=v_cover
+                    )
+                finally:
+                    if file_cover and os.path.exists(file_cover):
+                        try:
+                            os.remove(file_cover)
+                        except Exception:
+                            pass
             else:
                 msg = await client.send_cached_media(
                     chat_id=message.from_user.id,
@@ -290,13 +311,34 @@ async def start(client, message):
             InlineKeyboardButton("✖️ Close", callback_data="close_data")
         ]]
     if (FileId.decode(file_id)).file_type == 4:
-        vp = await client.send_video(
-            chat_id=message.from_user.id,
-            video=file_id,
-            caption=f_caption,
-            reply_markup=InlineKeyboardMarkup(btn),
-            video_cover=await db.get_video_cover()
-        )
+        file_cover = None
+        try:
+            parsed = PTN.parse(files['file_name'])
+            title = parsed.get("title")
+            year = parsed.get("year")
+            query = f"{title} {year}" if year else title
+            if query:
+                p_data = await get_poster(query)
+                if p_data:
+                    file_cover = generate_poster_image(p_data)
+        except Exception:
+            pass
+
+        v_cover = file_cover if file_cover else await db.get_video_cover()
+        try:
+            vp = await client.send_video(
+                chat_id=message.from_user.id,
+                video=file_id,
+                caption=f_caption,
+                reply_markup=InlineKeyboardMarkup(btn),
+                video_cover=v_cover
+            )
+        finally:
+            if file_cover and os.path.exists(file_cover):
+                try:
+                    os.remove(file_cover)
+                except Exception:
+                    pass
     else:
         vp = await client.send_cached_media(
             chat_id=message.from_user.id,
