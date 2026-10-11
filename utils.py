@@ -283,13 +283,7 @@ def generate_poster_image(data, channel_handle=None):
         from info import UPDATES_LINK
 
         if not channel_handle:
-            if UPDATES_LINK and "t.me/" in UPDATES_LINK:
-                username = UPDATES_LINK.split("t.me/")[-1].strip("/@")
-                channel_handle = f"@{username}"
-            elif temp.U_NAME:
-                channel_handle = f"@{temp.U_NAME}"
-            else:
-                channel_handle = "@cholochhitro"
+            channel_handle = "@cholochhitro"
         if not channel_handle.startswith("@"):
             channel_handle = f"@{channel_handle}"
 
@@ -318,20 +312,6 @@ def generate_poster_image(data, channel_handle=None):
                     canvas.paste(bg, (0, 0))
             except Exception:
                 pass
-
-        # Dark overlay
-        overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        draw_ov = ImageDraw.Draw(overlay)
-        for x in range(W):
-            alpha = int(220 * (1 - (x / W) ** 0.8) + 80)
-            alpha = min(245, max(40, alpha))
-            draw_ov.line([(x, 0), (x, H)], fill=(10, 15, 12, alpha))
-
-        for y in range(H // 2, H):
-            alpha = int(180 * ((y - H // 2) / (H // 2))**1.5)
-            draw_ov.line([(0, y), (W, y)], fill=(5, 5, 5, alpha))
-
-        canvas = Image.alpha_composite(canvas, overlay)
 
         # 2. Mini Poster (Bottom Left)
         poster_url = data.get('poster')

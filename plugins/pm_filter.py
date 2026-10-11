@@ -1725,8 +1725,7 @@ async def auto_filter(client, msg, s, spoll=False):
     del_msg = f"\n\n<b>⚠️ this message will be auto delete after <code>{get_readable_time(auto_del_time)}</code> to avoid copyright issues</b>" if settings["auto_delete"] else ''
     if imdb and (imdb.get('poster') or imdb.get('backdrop')):
         await s.delete()
-        poster_img = generate_poster_image(imdb)
-        photo = poster_img if poster_img else imdb.get('poster')
+        photo = imdb.get('poster') or imdb.get('backdrop')
         try:
             k = await message.reply_photo(photo=photo, caption=cap[:1024] + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML)
             if settings["auto_delete"]:
@@ -1744,12 +1743,6 @@ async def auto_filter(client, msg, s, spoll=False):
                 try:
                     await message.delete()
                 except:
-                    pass
-        finally:
-            if poster_img and os.path.exists(poster_img):
-                try:
-                    os.remove(poster_img)
-                except Exception:
                     pass
     else:
         k = await s.edit_text(cap + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=enums.ParseMode.HTML)
