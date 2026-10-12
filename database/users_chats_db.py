@@ -320,4 +320,41 @@ class Database:
     async def del_movie_req(self, req_id):
         await self.movie_req.delete_many({'req_id': req_id})
 
+    async def get_pm_search_status(self):
+        stg = await self.stg.find_one({'id': BOT_ID})
+        if not stg or 'PM_SEARCH' not in stg:
+            from info import PM_SEARCH
+            return PM_SEARCH
+        return stg.get('PM_SEARCH', True)
+
+    async def set_pm_search_status(self, value: bool):
+        await self.stg.update_one({'id': BOT_ID}, {'$set': {'PM_SEARCH': value}}, upsert=True)
+
+    async def get_bad_words(self):
+        stg = await self.stg.find_one({'id': BOT_ID})
+        if not stg:
+            return []
+        return stg.get('BAD_WORDS', [])
+
+    async def add_bad_words(self, words: list):
+        stg = await self.stg.find_one({'id': BOT_ID})
+        existing = set(stg.get('BAD_WORDS', [])) if stg else set()
+        for w in words:
+            w_str = str(w).strip()
+            if w_str:
+                existing.add(w_str)
+        await self.stg.update_one({'id': BOT_ID}, {'$set': {'BAD_WORDS': list(existing)}}, upsert=True)
+        return list(existing)
+
+    async def remove_bad_words(self, words: list):
+        stg = await self.stg.find_one({'id': BOT_ID})
+        if not stg:
+            return []
+        existing = set(stg.get('BAD_WORDS', []))
+        for w in words:
+            w_str = str(w).strip()
+            existing.discard(w_str)
+        await self.stg.update_one({'id': BOT_ID}, {'$set': {'BAD_WORDS': list(existing)}}, upsert=True)
+        return list(existing)
+
 db = Database()

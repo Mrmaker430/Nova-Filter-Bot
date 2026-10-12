@@ -7,7 +7,7 @@ from time import monotonic
 from Script import script
 from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, LinkPreviewOptions, WebAppInfo
-from database.ia_filterdb import db_count_documents, second_db_count_documents, get_file_details, delete_files, delete_all_files
+from database.ia_filterdb import db_count_documents, second_db_count_documents, get_file_details, delete_files, delete_all_files, remove_bad_words_from_db
 from database.users_chats_db import db
 from datetime import datetime, timedelta
 from info import REQUESTS_CHANNEL, PREMIUM_PLANS, EFFECT_IDS, OWNER_USERNAME, IS_PREMIUM, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME
@@ -768,3 +768,49 @@ async def set_req_fsub_cmd(client, message):
     channel = " ".join(message.command[1:])
     await db.set_req_fsub(channel)
     await message.reply(f"✅ <b>Request Force Sub Channels updated!</b>\n\nChannels: <code>{channel}</code>")
+
+@Client.on_message(filters.command("pm_search") & filters.incoming & filters.user(ADMINS))
+async def pm_search_cmd(client, message):
+    args = message.text.split()
+    if len(args) == 1:
+        status = await db.get_pm_search_status()
+        status_text = "<b>ENABLED</b> 🟢" if status else "<b>DISABLED</b> 🔴"
+        return await message.reply_text(
+            f"🔍 <b>PM Search Status:</b> {status_text}\n\n"
+            "ℹ️ <b>Usage:</b>\n"
+            "• <code>/pm_search on</code> — Enable PM search\n"
+            "• <code>/pm_search off</code> — Disable PM search"
+        )
+
+    if len(args) != 2 or args[1].lower() not in ["on", "off"]:
+        return await message.reply_text("ℹ️ <b>Usage:</b> <code>/pm_search on</code> or <code>/pm_search off</code>")
+
+    if args[1].lower() == "on":
+        await db.set_pm_search_status(True)
+        await message.reply_text("✅ <b>PM search enabled successfully.</b>")
+    else:
+        await db.set_pm_search_status(False)
+        await message.reply_text("✅ <b>PM search disabled successfully.</b>")
+
+@Client.on_message(filters.command("bad_word") & filters.incoming & filters.user(ADMINS))
+async def bad_word_cmd(client, message):
+    words = message.text.split()[1:]
+    if not words:
+        current_words = await db.get_bad_words()
+        words_formatted = ", ".join([f"<code>{w}</code>" for w in current_words]) if current_words else "None"
+        return await message.reply_text(
+            f"🚫 <b>Bad Words Filter</b>\n\n"
+            f"<b>Current Bad Words:</b> {words_formatted}\n\n"
+            "ℹ️ <b>Usage:</b>\n"
+            "• <code>/bad_word {word}</code> — Remove a single bad word from file titles\n"
+            "• <code>/bad_word {word1} {word2} ...</code> — Remove multiple bad words in bulk"
+        )
+
+    await db.add_bad_words(words)
+    m = await message.reply_text("🔄 <b>Removing bad words from file titles...</b>")
+    updated_count = await remove_bad_words_from_db(words)
+    words_str = ", ".join([f"<code>{w}</code>" for w in words])
+    await m.edit_text(
+        f"✅ <b>Successfully processed bad words:</b> {words_str}\n\n"
+        f"Updated <code>{updated_count}</code> files in database."
+    )

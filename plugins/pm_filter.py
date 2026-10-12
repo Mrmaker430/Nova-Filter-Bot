@@ -178,9 +178,16 @@ async def pm_search(client, message):
     if message.text.startswith("/"):
         return
 
-    
-    if not PM_SEARCH:
-        return await message.reply_text('⚠️ PM search was disabled!')
+    if not await db.get_pm_search_status():
+        btn = [[
+            InlineKeyboardButton('💬 ʀᴇǫᴜᴇsᴛ ɢʀᴏᴜᴘ', url=SUPPORT_LINK, style=enums.ButtonStyle.PRIMARY)
+        ]]
+        return await message.reply_text(
+            f"🙋 ʜᴇʏ  {message.from_user.mention}😍\n\n"
+            "ʏᴏᴜ ᴄᴀɴ sᴇᴀʀᴄʜ 🕵️ ʏᴏᴜʀ ғᴀᴠᴏʀɪᴛᴇ ᴍᴏᴠɪᴇs/sᴇʀɪᴇs ⚝ ᴋɪɴᴅʟʏ ʀᴇǫᴜᴇsᴛ ɪɴ ʀᴇqᴜᴇꜱᴛ ɢʀᴏᴜᴘ\n\n"
+            "আপনি আপনার প্রিয় মুভি/সিরিজ খুঁজতে পারেন ⚝ রিকোয়েস্ট গ্রুপ এ রিকোয়েস্ট করুন।",
+            reply_markup=InlineKeyboardMarkup(btn)
+        )
     if await is_premium(message.from_user.id, client):
         if not AUTO_FILTER:
             return await message.reply_text('⚠️ Auto filter was disabled!')
