@@ -5,7 +5,7 @@ import base64
 from pyrogram.file_id import FileId
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import TEXT, ASCENDING
-from pymongo.errors import DuplicateKeyError, OperationFailure
+from pymongo.errors import DuplicateKeyError, OperationFailure, PyMongoError
 from info import USE_CAPTION_FILTER, FILES_DATABASE_URL, SECOND_FILES_DATABASE_URL, DATABASE_NAME, COLLECTION_NAME, MAX_BTN, DATA_DATABASE_URL
 import PTN, asyncio
 from database.users_chats_db import data_db
@@ -121,6 +121,11 @@ async def save_file(media):
     data = PTN.parse(file_name)
     title = data.get('title')
     year = data.get('year')
+
+    if SECOND_FILES_DATABASE_URL and second_collection is not None:
+        if await second_collection.find_one({'_id': file_id}):
+            logger.warning(f'Already Saved in 2nd db - {file_name}')
+            return 'dup'
     
     try:
         await collection.insert_one(document)
@@ -133,7 +138,7 @@ async def save_file(media):
         logger.warning(f'Already Saved - {file_name}')
         return 'dup'
         
-    except OperationFailure:
+    except (OperationFailure, PyMongoError) as e:
         if SECOND_FILES_DATABASE_URL and second_collection is not None:
             try:
                 await second_collection.insert_one(document)
@@ -145,8 +150,11 @@ async def save_file(media):
             except DuplicateKeyError:
                 logger.warning(f'Already Saved in 2nd db - {file_name}')
                 return 'dup'
+            except Exception as ex:
+                logger.error(f'Failed to save to 2nd db: {ex}')
+                return 'err'
         else:
-            logger.error('Your FILES_DATABASE_URL is full, add SECOND_FILES_DATABASE_URL')
+            logger.error(f'Your FILES_DATABASE_URL is full or failed: {e}')
             return 'err'
 
 
@@ -155,16 +163,23 @@ async def get_search_results(query):
     if not query:
         recent_limit = 100  # default limit for fetching recently added files
         results = []
+        seen_ids = set()
         
         cursor1 = collection.find({}).sort("_id", -1).limit(recent_limit)
         docs1 = await cursor1.to_list(length=recent_limit)
-        results.extend(docs1)
+        for doc in docs1:
+            if doc['_id'] not in seen_ids:
+                seen_ids.add(doc['_id'])
+                results.append(doc)
 
         if SECOND_FILES_DATABASE_URL and second_collection is not None and len(results) < recent_limit:
             remaining_limit = recent_limit - len(results)
             cursor2 = second_collection.find({}).sort("_id", -1).limit(remaining_limit)
             docs2 = await cursor2.to_list(length=remaining_limit)
-            results.extend(docs2)
+            for doc in docs2:
+                if doc['_id'] not in seen_ids:
+                    seen_ids.add(doc['_id'])
+                    results.append(doc)
 
         return results
 
@@ -201,15 +216,22 @@ async def get_search_results(query):
         search_filter["$or"].append({"$and": caption_query_list})
 
     results = []
+    seen_ids = set()
     
     cursor1 = collection.find(search_filter)
     docs1 = await cursor1.to_list(length=None) 
-    results.extend(docs1)
+    for doc in docs1:
+        if doc['_id'] not in seen_ids:
+            seen_ids.add(doc['_id'])
+            results.append(doc)
 
     if SECOND_FILES_DATABASE_URL and second_collection is not None:
         cursor2 = second_collection.find(search_filter)
         docs2 = await cursor2.to_list(length=None)
-        results.extend(docs2)
+        for doc in docs2:
+            if doc['_id'] not in seen_ids:
+                seen_ids.add(doc['_id'])
+                results.append(doc)
 
     return results
 
