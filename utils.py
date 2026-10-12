@@ -1,13 +1,13 @@
 from pyrogram.errors import UserNotParticipant, FloodWait
 from info import FORCE_SUB_CHANNELS, LONG_IMDB_DESCRIPTION, ADMINS, IS_PREMIUM, TIME_ZONE, TMDB_API_KEY, USE_CAPTION_FILTER, UPDATES_SEND_CHANNEL, FILMS_LINK, REQUEST_FORCE_SUB_CHANNEL
-import asyncio, os
+import asyncio, os, io, tempfile
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, LinkPreviewOptions
 from pyrogram import enums
 import re
 from datetime import datetime
 from database.users_chats_db import db
 from shortzy import Shortzy
-import requests, pytz
+import aiohttp, pytz
 from Script import script
 
 
@@ -72,7 +72,7 @@ async def send_update(title, year):
         countries=data['countries']
     )
     
-    poster_path = generate_poster_image(data)
+    poster_path = await generate_poster_image(data)
     photo = poster_path if poster_path else data.get('poster')
     if photo:
         try:
@@ -140,20 +140,21 @@ async def is_subscribed(bot, query):
     return btn
 
 
-def upload_image(file_path):
-    with open(file_path, 'rb') as f:
-        files = {'files[]': f}
-        response = requests.post("https://uguu.se/upload", files=files)
-
-    if response.status_code == 200:
-        try:
-            data = response.json()
-            return data['files'][0]['url'].replace('\\/', '/')
-        except Exception as e:
-            return None
-    else:
-        return None
-
+async def upload_image(file_path):
+    try:
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            with open(file_path, 'rb') as f:
+                data = aiohttp.FormData()
+                data.add_field('files[]', f)
+                async with session.post("https://uguu.se/upload", data=data) as response:
+                    if response.status == 200:
+                        res_json = await response.json()
+                        return res_json['files'][0]['url'].replace('\\/', '/')
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error uploading image: {e}")
+    return None
 
 
 async def get_poster(query):
@@ -169,66 +170,81 @@ async def get_poster(query):
     title = parsed.get("title", query)
     year = parsed.get("year", None)
 
-    url = f"{TMDB_BASE}/search/multi"
-    params = {
-        "api_key": TMDB_API_KEY,
-        "query": title
-    }
+    timeout = aiohttp.ClientTimeout(total=10)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        url = f"{TMDB_BASE}/search/multi"
+        params = {
+            "api_key": TMDB_API_KEY,
+            "query": title
+        }
+        try:
+            async with session.get(url, params=params) as resp:
+                if resp.status != 200:
+                    return None
+                res = await resp.json()
+        except Exception:
+            return None
 
-    res = requests.get(url, params=params).json()
+        results = [
+            r for r in res.get("results", [])
+            if r.get("media_type") in ["movie", "tv"]
+        ]
 
-    results = [
-        r for r in res.get("results", [])
-        if r.get("media_type") in ["movie", "tv"]
-    ]
+        if not results:
+            return None
 
-    if not results:
-        return None
+        if year:
+            filtered = []
+            for r in results:
+                release = r.get("release_date") or r.get("first_air_date")
+                if release and release.startswith(str(year)):
+                    filtered.append(r)
 
-    if year:
-        filtered = []
-        for r in results:
-            release = r.get("release_date") or r.get("first_air_date")
-            if release and release.startswith(str(year)):
-                filtered.append(r)
+            if filtered:
+                results = filtered
 
-        if filtered:
-            results = filtered
+        data = results[0]
+        tmdb_id = data["id"]
+        media_type = data["media_type"]
 
-    data = results[0]
-    tmdb_id = data["id"]
-    media_type = data["media_type"]
+        try:
+            async with session.get(
+                f"{TMDB_BASE}/{media_type}/{tmdb_id}",
+                params={"api_key": TMDB_API_KEY}
+            ) as resp:
+                if resp.status != 200:
+                    return None
+                data = await resp.json()
+        except Exception:
+            return None
 
-    data = requests.get(
-        f"{TMDB_BASE}/{media_type}/{tmdb_id}",
-        params={"api_key": TMDB_API_KEY}
-    ).json()
+        title = data.get("title") or data.get("name")
 
-    title = data.get("title") or data.get("name")
+        poster = None
+        if data.get("poster_path"):
+            poster = f"https://image.tmdb.org/t/p/original{data['poster_path']}"
 
-    poster = None
-    if data.get("poster_path"):
-        poster = f"https://image.tmdb.org/t/p/original{data['poster_path']}"
+        backdrop = None
+        if data.get("backdrop_path"):
+            backdrop = f"https://image.tmdb.org/t/p/w1280{data['backdrop_path']}"
 
-    backdrop = None
-    if data.get("backdrop_path"):
-        backdrop = f"https://image.tmdb.org/t/p/w1280{data['backdrop_path']}"
-
-    logo = None
-    try:
-        img_res = requests.get(
-            f"{TMDB_BASE}/{media_type}/{tmdb_id}/images",
-            params={"api_key": TMDB_API_KEY, "include_image_language": "en,null"}
-        ).json()
-        logos = img_res.get("logos", [])
-        if logos:
-            en_logos = [l for l in logos if l.get("iso_639_1") == "en"]
-            selected_logo = en_logos[0] if en_logos else logos[0]
-            if selected_logo.get("file_path"):
-                logo = f"https://image.tmdb.org/t/p/w500{selected_logo['file_path']}"
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Error fetching tmdb logo: {e}")
+        logo = None
+        try:
+            async with session.get(
+                f"{TMDB_BASE}/{media_type}/{tmdb_id}/images",
+                params={"api_key": TMDB_API_KEY, "include_image_language": "en,null"}
+            ) as resp:
+                if resp.status == 200:
+                    img_res = await resp.json()
+                    logos = img_res.get("logos", [])
+                    if logos:
+                        en_logos = [l for l in logos if l.get("iso_639_1") == "en"]
+                        selected_logo = en_logos[0] if en_logos else logos[0]
+                        if selected_logo.get("file_path"):
+                            logo = f"https://image.tmdb.org/t/p/w500{selected_logo['file_path']}"
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Error fetching tmdb logo: {e}")
 
     release_date = data.get("release_date") or data.get("first_air_date") or "N/A"
 
@@ -274,13 +290,11 @@ async def get_poster(query):
     }
 
 
-def generate_poster_image(data, channel_handle=None):
+def _render_poster_canvas(data, backdrop_bytes, poster_bytes, logo_bytes, channel_handle):
     if not data:
         return None
     try:
         from PIL import Image, ImageDraw, ImageFont
-        import io, tempfile, requests
-        from info import UPDATES_LINK
 
         if not channel_handle:
             channel_handle = "@cholochhitro"
@@ -291,52 +305,46 @@ def generate_poster_image(data, channel_handle=None):
         canvas = Image.new("RGBA", (W, H), (15, 15, 15, 255))
 
         # 1. Backdrop Image
-        backdrop_url = data.get('backdrop')
-        if backdrop_url:
+        if backdrop_bytes:
             try:
-                resp = requests.get(backdrop_url, timeout=8)
-                if resp.status_code == 200:
-                    bg = Image.open(io.BytesIO(resp.content)).convert("RGBA")
-                    bg_ratio = bg.width / bg.height
-                    target_ratio = W / H
-                    if bg_ratio > target_ratio:
-                        new_w = int(H * bg_ratio)
-                        bg = bg.resize((new_w, H), Image.Resampling.LANCZOS)
-                        left = (new_w - W) // 2
-                        bg = bg.crop((left, 0, left + W, H))
-                    else:
-                        new_h = int(W / bg_ratio)
-                        bg = bg.resize((W, new_h), Image.Resampling.LANCZOS)
-                        top = (new_h - H) // 2
-                        bg = bg.crop((0, top, W, top + H))
-                    canvas.paste(bg, (0, 0))
+                bg = Image.open(io.BytesIO(backdrop_bytes)).convert("RGBA")
+                bg_ratio = bg.width / bg.height
+                target_ratio = W / H
+                if bg_ratio > target_ratio:
+                    new_w = int(H * bg_ratio)
+                    bg = bg.resize((new_w, H), Image.Resampling.LANCZOS)
+                    left = (new_w - W) // 2
+                    bg = bg.crop((left, 0, left + W, H))
+                else:
+                    new_h = int(W / bg_ratio)
+                    bg = bg.resize((W, new_h), Image.Resampling.LANCZOS)
+                    top = (new_h - H) // 2
+                    bg = bg.crop((0, top, W, top + H))
+                canvas.paste(bg, (0, 0))
             except Exception:
                 pass
 
         # 2. Mini Poster (Bottom Left)
-        poster_url = data.get('poster')
         poster_w, poster_h = 330, 490
         poster_x, poster_y = 75, H - poster_h - 75
 
-        if poster_url:
+        if poster_bytes:
             try:
-                p_resp = requests.get(poster_url, timeout=8)
-                if p_resp.status_code == 200:
-                    p_img = Image.open(io.BytesIO(p_resp.content)).convert("RGBA")
-                    p_img = p_img.resize((poster_w, poster_h), Image.Resampling.LANCZOS)
+                p_img = Image.open(io.BytesIO(poster_bytes)).convert("RGBA")
+                p_img = p_img.resize((poster_w, poster_h), Image.Resampling.LANCZOS)
 
-                    radius = 28
-                    mask = Image.new("L", (poster_w, poster_h), 0)
-                    draw_m = ImageDraw.Draw(mask)
-                    draw_m.rounded_rectangle([(0, 0), (poster_w, poster_h)], radius=radius, fill=255)
+                radius = 28
+                mask = Image.new("L", (poster_w, poster_h), 0)
+                draw_m = ImageDraw.Draw(mask)
+                draw_m.rounded_rectangle([(0, 0), (poster_w, poster_h)], radius=radius, fill=255)
 
-                    border_img = Image.new("RGBA", (poster_w + 8, poster_h + 8), (255, 255, 255, 230))
-                    b_mask = Image.new("L", (poster_w + 8, poster_h + 8), 0)
-                    draw_bm = ImageDraw.Draw(b_mask)
-                    draw_bm.rounded_rectangle([(0, 0), (poster_w + 8, poster_h + 8)], radius=radius + 4, fill=255)
+                border_img = Image.new("RGBA", (poster_w + 8, poster_h + 8), (255, 255, 255, 230))
+                b_mask = Image.new("L", (poster_w + 8, poster_h + 8), 0)
+                draw_bm = ImageDraw.Draw(b_mask)
+                draw_bm.rounded_rectangle([(0, 0), (poster_w + 8, poster_h + 8)], radius=radius + 4, fill=255)
 
-                    canvas.paste(border_img, (poster_x - 4, poster_y - 4), b_mask)
-                    canvas.paste(p_img, (poster_x, poster_y), mask)
+                canvas.paste(border_img, (poster_x - 4, poster_y - 4), b_mask)
+                canvas.paste(p_img, (poster_x, poster_y), mask)
             except Exception:
                 pass
 
@@ -344,25 +352,22 @@ def generate_poster_image(data, channel_handle=None):
         content_max_w = W - content_x - 80
 
         # 3. Logo Title
-        logo_url = data.get('logo')
         logo_placed = False
         logo_y = poster_y + 10
         logo_max_h = 160
 
-        if logo_url:
+        if logo_bytes:
             try:
-                l_resp = requests.get(logo_url, timeout=8)
-                if l_resp.status_code == 200:
-                    l_img = Image.open(io.BytesIO(l_resp.content)).convert("RGBA")
-                    l_w, l_h = l_img.size
-                    scale = min(content_max_w / l_w, logo_max_h / l_h)
-                    new_lw = int(l_w * scale)
-                    new_lh = int(l_h * scale)
-                    l_img = l_img.resize((new_lw, new_lh), Image.Resampling.LANCZOS)
+                l_img = Image.open(io.BytesIO(logo_bytes)).convert("RGBA")
+                l_w, l_h = l_img.size
+                scale = min(content_max_w / l_w, logo_max_h / l_h)
+                new_lw = int(l_w * scale)
+                new_lh = int(l_h * scale)
+                l_img = l_img.resize((new_lw, new_lh), Image.Resampling.LANCZOS)
 
-                    canvas.paste(l_img, (content_x, logo_y), l_img)
-                    logo_placed = True
-                    badge_y = logo_y + new_lh + 35
+                canvas.paste(l_img, (content_x, logo_y), l_img)
+                logo_placed = True
+                badge_y = logo_y + new_lh + 35
             except Exception:
                 pass
 
@@ -481,6 +486,31 @@ def generate_poster_image(data, channel_handle=None):
         import logging
         logging.getLogger(__name__).error(f"Error generating poster image: {e}")
         return None
+
+
+async def generate_poster_image(data, channel_handle=None):
+    if not data:
+        return None
+    async def _fetch_bytes(session, url):
+        if not url:
+            return None
+        try:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    return await resp.read()
+        except Exception:
+            pass
+        return None
+
+    timeout = aiohttp.ClientTimeout(total=8)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        backdrop_bytes = await _fetch_bytes(session, data.get('backdrop'))
+        poster_bytes = await _fetch_bytes(session, data.get('poster'))
+        logo_bytes = await _fetch_bytes(session, data.get('logo'))
+
+    return await asyncio.to_thread(
+        _render_poster_canvas, data, backdrop_bytes, poster_bytes, logo_bytes, channel_handle
+    )
 
 async def is_check_admin(bot, chat_id, user_id):
     try:

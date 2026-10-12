@@ -12,6 +12,32 @@ from database.users_chats_db import db
 from datetime import datetime, timedelta
 from info import REQUESTS_CHANNEL, PREMIUM_PLANS, EFFECT_IDS, OWNER_USERNAME, IS_PREMIUM, URL, BIN_CHANNEL, SECOND_FILES_DATABASE_URL, INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, IS_STREAM, REACTIONS, PM_FILE_DELETE_TIME
 from utils import get_plan_name, get_poster, generate_poster_image, is_premium, upload_image, get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds, render_list_page
+
+async def delete_pm_files(client, chat_id, message_ids, vp, grp_id, file_or_key, delay, is_batch=False):
+    await asyncio.sleep(delay)
+    if is_batch:
+        buttons = [[InlineKeyboardButton("🚀 Get Files Again", callback_data=f"get_del_send_all_files#{grp_id}#{file_or_key}")]]
+        try:
+            await client.delete_messages(chat_id=chat_id, message_ids=message_ids)
+        except Exception:
+            pass
+        if vp:
+            try:
+                await vp.edit("🗑️ <b>Files Auto-Deleted!</b>\n\nTo protect against copyright, the files were removed. Click below to generate new delivery links.", reply_markup=InlineKeyboardMarkup(buttons))
+            except Exception:
+                pass
+    else:
+        btns = [[InlineKeyboardButton("🚀 Get File Again", callback_data=f"get_del_file#{grp_id}#{file_or_key}")]]
+        for m in message_ids:
+            if m:
+                try:
+                    await m.delete()
+                except Exception:
+                    pass
+        try:
+            await client.send_message(chat_id, "🗑️ <b>File Auto-Deleted!</b>\n\nTo protect against copyright, this file was removed. Click below to generate a new delivery link.", reply_markup=InlineKeyboardMarkup(btns))
+        except Exception:
+            pass
 import PTN
 from pyrogram.file_id import FileId
 
@@ -226,7 +252,7 @@ async def start(client, message):
                     if query:
                         p_data = await get_poster(query)
                         if p_data:
-                            file_cover = generate_poster_image(p_data)
+                            file_cover = await generate_poster_image(p_data)
                 except Exception:
                     pass
 
@@ -258,13 +284,7 @@ async def start(client, message):
 
         time = get_readable_time(PM_FILE_DELETE_TIME)
         vp = await message.reply(f"⚠️ <b>Note:</b> These files will be auto-deleted in <b>{time}</b> to prevent copyright infringement. Please forward or download them immediately!")
-        await asyncio.sleep(PM_FILE_DELETE_TIME)
-        buttons = [[InlineKeyboardButton("🚀 Get Files Again", callback_data=f"get_del_send_all_files#{grp_id}#{key}")]] 
-        await client.delete_messages(
-            chat_id=message.chat.id,
-            message_ids=file_ids + [total_files.id]
-        )
-        await vp.edit("🗑️ <b>Files Auto-Deleted!</b>\n\nTo protect against copyright, the files were removed. Click below to generate new delivery links.", reply_markup=InlineKeyboardMarkup(buttons))
+        asyncio.create_task(delete_pm_files(client, message.chat.id, file_ids + [total_files.id], vp, grp_id, key, PM_FILE_DELETE_TIME, is_batch=True))
         return
 
     parts = mc.split("_", 2)
@@ -321,7 +341,7 @@ async def start(client, message):
             if query:
                 p_data = await get_poster(query)
                 if p_data:
-                    file_cover = generate_poster_image(p_data)
+                    file_cover = await generate_poster_image(p_data)
         except Exception:
             pass
 
@@ -350,13 +370,7 @@ async def start(client, message):
         )
     time = get_readable_time(PM_FILE_DELETE_TIME)
     msg = await vp.reply(f"⚠️ <b>Note:</b> This file will be auto-deleted in <b>{time}</b> to prevent copyright infringement. Please forward or download it immediately!")
-    await asyncio.sleep(PM_FILE_DELETE_TIME)
-    btns = [[
-        InlineKeyboardButton("🚀 Get File Again", callback_data=f"get_del_file#{grp_id}#{file_id}")
-    ]]
-    await msg.delete()
-    await vp.delete()
-    await vp.reply("🗑️ <b>File Auto-Deleted!</b>\n\nTo protect against copyright, this file was removed. Click below to generate a new delivery link.", reply_markup=InlineKeyboardMarkup(btns))
+    asyncio.create_task(delete_pm_files(client, message.chat.id, [msg, vp], None, grp_id, file_id, PM_FILE_DELETE_TIME, is_batch=False))
 
 
 @Client.on_message(filters.command('link'))
@@ -540,7 +554,7 @@ async def set_video_cover(bot, message):
         return await message.reply('❌ <b>Invalid Media!</b>\n\n<blockquote>Please reply to a valid photo or PNG/JPG image.</blockquote>')
     text = await message.reply_text(text="🔄 Processing....")   
     path = await reply_to_message.download()  
-    response = upload_image(path)
+    response = await upload_image(path)
     if not response:
         await text.edit_text(text="❌ <b>Upload Failed!</b>\n\n<blockquote>Could not upload image to as video cover. Please try again.</blockquote>")
         return    
@@ -567,7 +581,7 @@ async def img_2_link(bot, message):
         return await message.reply('❌ <b>Invalid Media!</b>\n\n<blockquote>Please reply to a valid photo or PNG/JPG image.</blockquote>')
     text = await message.reply_text(text="🔄 Processing....")   
     path = await reply_to_message.download()  
-    response = upload_image(path)
+    response = await upload_image(path)
     if not response:
         await text.edit_text(text="❌ <b>Upload Failed!</b>\n\n<blockquote>Could not upload image to Telegraph. Please try again.</blockquote>")
         return    
