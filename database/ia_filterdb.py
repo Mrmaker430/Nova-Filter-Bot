@@ -110,6 +110,16 @@ async def save_file(media):
     file_id = unpack_new_file_id(media.file_id)
     file_name = re.sub(r"@\w+|(_|\-|\.|\+)", " ", str(media.file_name))
     file_caption = re.sub(r"@\w+|(_|\-|\.|\+)", " ", str(media.caption))
+
+    try:
+        from database.users_chats_db import db as users_db
+        bad_words = await users_db.get_bad_words()
+        for word in bad_words:
+            if word:
+                file_name = re.sub(rf'(?i){re.escape(word)}', ' ', file_name)
+        file_name = re.sub(r'\s+', ' ', file_name).strip()
+    except Exception as ex:
+        logger.error(f"Error stripping bad words in save_file: {ex}")
     
     document = {
         '_id': file_id,
@@ -271,6 +281,50 @@ async def delete_files(query):
         pass
 
     return total_deleted
+
+
+async def remove_bad_words_from_db(words):
+    if not words:
+        return 0
+    updated_count = 0
+    for word in words:
+        w_str = str(word).strip()
+        if not w_str:
+            continue
+        pattern = re.compile(re.escape(w_str), flags=re.IGNORECASE)
+        filter_query = {'file_name': pattern}
+
+        cursor1 = collection.find(filter_query)
+        async for doc in cursor1:
+            new_title = re.sub(pattern, '', doc['file_name'])
+            new_title = re.sub(r'\s+', ' ', new_title)
+            new_title = re.sub(r'\s+\.', '.', new_title).strip()
+            if new_title != doc['file_name']:
+                await collection.update_one({'_id': doc['_id']}, {'$set': {'file_name': new_title}})
+                updated_count += 1
+
+        if SECOND_FILES_DATABASE_URL and second_collection is not None:
+            cursor2 = second_collection.find(filter_query)
+            async for doc in cursor2:
+                new_title = re.sub(pattern, '', doc['file_name'])
+                new_title = re.sub(r'\s+', ' ', new_title)
+                new_title = re.sub(r'\s+\.', '.', new_title).strip()
+                if new_title != doc['file_name']:
+                    await second_collection.update_one({'_id': doc['_id']}, {'$set': {'file_name': new_title}})
+                    updated_count += 1
+
+    try:
+        from utils import temp
+        temp.QUERY_CACHE.clear()
+    except Exception:
+        pass
+    try:
+        from plugins.pm_filter import QUERY_CACHE
+        QUERY_CACHE.clear()
+    except Exception:
+        pass
+
+    return updated_count
 
 
 async def delete_all_files():
