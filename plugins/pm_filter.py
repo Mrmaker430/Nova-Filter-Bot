@@ -23,6 +23,19 @@ ALL_FILES={}
 QUERY_CACHE = {}
 
 
+async def schedule_delete(msg1, msg2=None, delay=0):
+    await asyncio.sleep(delay)
+    try:
+        await msg1.delete()
+    except Exception:
+        pass
+    if msg2:
+        try:
+            await msg2.delete()
+        except Exception:
+            pass
+
+
 def clean_filename_for_matching(filename: str) -> str:
     fname = filename.lower()
     fname = re.sub(r'\b(?:x264|x265|x256|h264|h265|hevc|avc|xvid|divx|av1|vp9)\b', ' ', fname)
@@ -212,12 +225,7 @@ async def group_search(client, message):
         await auto_filter(client, message, s)
     else:
         k = await message.reply_text('❌ Auto Filter Off!')
-        await asyncio.sleep(5)
-        await k.delete()
-        try:
-            await message.delete()
-        except:
-            pass
+        asyncio.create_task(schedule_delete(k, message, 5))
 
 
 @Client.on_callback_query(filters.regex(r"^next_"))
@@ -657,12 +665,7 @@ async def advantage_spoll_choker(bot, query):
             InlineKeyboardButton("🌐 Search Google", url=f"https://www.google.com/search?q={google_search}")
         ]]
         k = await query.message.edit(text=script.NOT_FILE_TXT.format(query.from_user.mention, search), reply_markup=InlineKeyboardMarkup(btn))
-        await asyncio.sleep(60)
-        await k.delete()
-        try:
-            await query.message.reply_to_message.delete()
-        except:
-            pass
+        asyncio.create_task(schedule_delete(k, getattr(query.message, 'reply_to_message', None), 60))
 
 
 @Client.on_callback_query(filters.regex(r"^req_completed"))
@@ -1737,30 +1740,15 @@ async def auto_filter(client, msg, s, spoll=False):
         try:
             k = await message.reply_photo(photo=photo, caption=cap[:1024] + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML)
             if settings["auto_delete"]:
-                await asyncio.sleep(auto_del_time)
-                await k.delete()
-                try:
-                    await message.delete()
-                except:
-                    pass
+                asyncio.create_task(schedule_delete(k, message, auto_del_time))
         except Exception as e:
             k = await message.reply_text(cap + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=enums.ParseMode.HTML)
             if settings["auto_delete"]:
-                await asyncio.sleep(auto_del_time)
-                await k.delete()
-                try:
-                    await message.delete()
-                except:
-                    pass
+                asyncio.create_task(schedule_delete(k, message, auto_del_time))
     else:
         k = await s.edit_text(cap + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=enums.ParseMode.HTML)
         if settings["auto_delete"]:
-            await asyncio.sleep(auto_del_time)
-            await k.delete()
-            try:
-                await message.delete()
-            except:
-                pass
+            asyncio.create_task(schedule_delete(k, message, auto_del_time))
 
 async def advantage_spell_chok(message, s):
     search = message.text
@@ -1772,21 +1760,11 @@ async def advantage_spell_chok(message, s):
         movies = await get_imdb_suggestions(search)
     except:
         n = await s.edit_text(text=script.NOT_FILE_TXT.format(message.from_user.mention, search), reply_markup=InlineKeyboardMarkup(btn))
-        await asyncio.sleep(60)
-        await n.delete()
-        try:
-            await message.delete()
-        except:
-            pass
+        asyncio.create_task(schedule_delete(n, message, 60))
         return
     if not movies:
         n = await s.edit_text(text=script.NOT_FILE_TXT.format(message.from_user.mention, search), reply_markup=InlineKeyboardMarkup(btn))
-        await asyncio.sleep(60)
-        await n.delete()
-        try:
-            await message.delete()
-        except:
-            pass
+        asyncio.create_task(schedule_delete(n, message, 60))
         return
 
     user = message.from_user.id if message.from_user else 0
@@ -1799,10 +1777,5 @@ async def advantage_spell_chok(message, s):
         [InlineKeyboardButton("✖️ Close", callback_data="close_data")]
     )
     s = await s.edit_text(text=f"👋 <b>Hello {message.from_user.mention},</b>\n\n<blockquote>🥲 I couldn't find exactly <b>{search}</b> in our current database!</blockquote>\n\n💡 <b>Did you mean one of these titles below?</b> 👇", reply_markup=InlineKeyboardMarkup(buttons))
-    await asyncio.sleep(300)
-    await s.delete()
-    try:
-        await message.delete()
-    except:
-        pass
+    asyncio.create_task(schedule_delete(s, message, 300))
 
