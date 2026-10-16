@@ -781,10 +781,22 @@ async def cb_handler(client: Client, query: CallbackQuery):
         user_favorites = await db.get_favorites(query.from_user.id)
         watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{file_id}") if str(file_id) in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{file_id}")
         fav_btn = InlineKeyboardButton("💔 Remove Favorites", callback_data=f"del_fav#{file_id}") if str(file_id) in user_favorites else InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{file_id}")
+        extract_row = None
+        if query.message and query.message.reply_markup and query.message.reply_markup.inline_keyboard:
+            for row in query.message.reply_markup.inline_keyboard:
+                for b in row:
+                    if (b.callback_data and (b.callback_data.startswith("extract_data") or b.callback_data == "wait_data")) or (b.url and ("telegraph" in b.url or "telegra.ph" in b.url)):
+                        extract_row = row
+                        break
+                if extract_row:
+                    break
+        if not extract_row:
+            extract_row = [InlineKeyboardButton("🎧 Audio Tracks 🎧", callback_data=f"extract_data:{file_id}")]
+
         btn = [[
             InlineKeyboardButton("🎬 Watch Online", url=watch),
             InlineKeyboardButton("⚡ Fast Download", url=download)
-        ],[
+        ], extract_row, [
             watch_btn, fav_btn
         ],[
             InlineKeyboardButton('✖️ Close', callback_data='close_data')

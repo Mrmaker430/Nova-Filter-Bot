@@ -11,3 +11,6 @@ httpx
 motor
 parse-torrent-title
 pillow
+pymediainfo
+telegraph
+aiofiles
