@@ -227,9 +227,12 @@ async def start(client, message):
             f_id_str = str(file['_id'])
             watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{f_id_str}") if f_id_str in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
             fav_btn = InlineKeyboardButton("💔 Remove Favorites", callback_data=f"del_fav#{f_id_str}") if f_id_str in user_favorites else InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{f_id_str}")
+            extract_btn = InlineKeyboardButton("🎧 Audio Tracks 🎧", callback_data=f"extract_data:{f_id_str}")
             if IS_STREAM and URL:
                 btn = [[
                     InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
+                ],[
+                    extract_btn
                 ],[
                     watch_btn, fav_btn
                 ],[
@@ -237,6 +240,8 @@ async def start(client, message):
                 ]]
             else:
                 btn = [[
+                    extract_btn
+                ],[
                     watch_btn, fav_btn
                 ],[
                     InlineKeyboardButton("✖️ Close", callback_data="close_data")
@@ -317,9 +322,12 @@ async def start(client, message):
     f_id_str = str(file_id)
     watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{f_id_str}") if f_id_str in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
     fav_btn = InlineKeyboardButton("💔 Remove Favorites", callback_data=f"del_fav#{f_id_str}") if f_id_str in user_favorites else InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{f_id_str}")
+    extract_btn = InlineKeyboardButton("🎧 Audio Tracks 🎧", callback_data=f"extract_data:{f_id_str}")
     if IS_STREAM and URL:
         btn = [[
             InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
+        ],[
+            extract_btn
         ],[
             watch_btn, fav_btn
         ],[
@@ -327,6 +335,8 @@ async def start(client, message):
         ]]
     else:
         btn = [[
+            extract_btn
+        ],[
             watch_btn, fav_btn
         ],[
             InlineKeyboardButton("✖️ Close", callback_data="close_data")
