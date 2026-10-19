@@ -193,36 +193,41 @@ async def get_search_results(query):
 
         return results
 
-    import PTN
     import re
-    parsed = PTN.parse(query)
-    title = parsed.get("title", query).strip()
+    raw_query = str(query).strip()
+    cleaned_query = re.sub(r"@\w+|[^\w\s]|_", " ", raw_query)
+    cleaned_query = re.sub(r"\s+", " ", cleaned_query).strip()
 
-    title_words = [re.escape(word) for word in title.split()]
-    raw_pattern = r'[\s\.\+\-_]+'.join(title_words) if len(title_words) > 1 else r'\b' + re.escape(title) + r'\b'
-    
-    and_conditions = [{"$regex": raw_pattern, "$options": "i"}]
-    
-    if parsed.get("year"):
-        and_conditions.append({"$regex": rf"\b{parsed['year']}\b", "$options": "i"})
-    if parsed.get("season"):
-        and_conditions.append({"$regex": rf"\b(s|season)[\s\.\-_]*0?{parsed['season']}\b", "$options": "i"})
-    if parsed.get("episode"):
-        and_conditions.append({"$regex": rf"\b(e|episode|ep)[\s\.\-_]*0?{parsed['episode']}\b", "$options": "i"})
-    if parsed.get("language"):
-        and_conditions.append({"$regex": rf"\b{parsed['language']}\b", "$options": "i"})
-    if parsed.get("resolution"):
-        and_conditions.append({"$regex": rf"\b{parsed['resolution']}\b", "$options": "i"})
-    if parsed.get("quality"):
-        and_conditions.append({"$regex": rf"\b{parsed['quality']}\b", "$options": "i"})
-    if parsed.get("codec"):
-        and_conditions.append({"$regex": rf"\b{parsed['codec']}\b", "$options": "i"})
-    
-    db_query_list = [{"file_name": cond} for cond in and_conditions]
+    words = cleaned_query.split()
+    if not words:
+        return []
+
+    regex_patterns = []
+    for w in words:
+        se_match = re.match(r"^(?:s|season)?0*(\d{1,2})(?:e|ep|episode)?0*(\d{1,2})$", w, re.IGNORECASE)
+        s_match = re.match(r"^(?:s|season)0*(\d{1,2})$", w, re.IGNORECASE)
+        e_match = re.match(r"^(?:e|ep|episode)0*(\d{1,2})$", w, re.IGNORECASE)
+
+        if se_match and (w.lower().startswith("s") or "e" in w.lower()):
+            s_num, e_num = se_match.groups()
+            pattern = rf"(?:s0*{s_num}[\s\.\-_]*e0*{e_num}|s0*{s_num}|e0*{e_num}|\b0*{s_num}x0*{e_num}\b|{re.escape(w)})"
+            regex_patterns.append(pattern)
+        elif s_match and not w.isdigit():
+            s_num = s_match.group(1)
+            pattern = rf"(?:s0*{s_num}\b|season[\s\.\-_]*0*{s_num}\b|{re.escape(w)})"
+            regex_patterns.append(pattern)
+        elif e_match and not w.isdigit():
+            e_num = e_match.group(1)
+            pattern = rf"(?:e0*{e_num}\b|ep0*{e_num}\b|episode[\s\.\-_]*0*{e_num}\b|{re.escape(w)})"
+            regex_patterns.append(pattern)
+        else:
+            regex_patterns.append(re.escape(w))
+
+    db_query_list = [{"file_name": {"$regex": pat, "$options": "i"}} for pat in regex_patterns]
     search_filter = {"$or": [{"$and": db_query_list}]}
     
     if USE_CAPTION_FILTER:
-        caption_query_list = [{"caption": cond} for cond in and_conditions]
+        caption_query_list = [{"caption": {"$regex": pat, "$options": "i"}} for pat in regex_patterns]
         search_filter["$or"].append({"$and": caption_query_list})
 
     results = []
