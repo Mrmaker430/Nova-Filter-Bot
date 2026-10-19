@@ -88,5 +88,34 @@ class TestIAFilterDB(unittest.TestCase):
         ids = [r['_id'] for r in results]
         self.assertEqual(ids, ['file_1', 'file_2'])
 
+    @patch('database.ia_filterdb.second_collection', None)
+    @patch('database.ia_filterdb.collection')
+    @patch('database.ia_filterdb.SECOND_FILES_DATABASE_URL', None)
+    def test_get_search_results_query_cleaning(self, mock_collection):
+        from database.ia_filterdb import get_search_results
+
+        cursor = MagicMock()
+        cursor.to_list = AsyncMock(return_value=[])
+        mock_collection.find.return_value = cursor
+
+        # Test with dot-separated season/episode query
+        asyncio.run(get_search_results('Money.Heist.S01E01'))
+        query_filter = mock_collection.find.call_args[0][0]
+        and_list = query_filter['$or'][0]['$and']
+        # Should have patterns for Money, Heist, and S01E01
+        patterns = [item['file_name']['$regex'] for item in and_list]
+        self.assertIn('Money', patterns)
+        self.assertIn('Heist', patterns)
+        self.assertTrue(any('s0*1' in p for p in patterns))
+
+        # Test with hyphens and parentheses
+        asyncio.run(get_search_results('Spider-Man: (2002)'))
+        query_filter = mock_collection.find.call_args[0][0]
+        and_list = query_filter['$or'][0]['$and']
+        patterns = [item['file_name']['$regex'] for item in and_list]
+        self.assertIn('Spider', patterns)
+        self.assertIn('Man', patterns)
+        self.assertIn('2002', patterns)
+
 if __name__ == '__main__':
     unittest.main()
