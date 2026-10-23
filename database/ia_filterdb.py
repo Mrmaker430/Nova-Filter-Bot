@@ -96,14 +96,19 @@ async def trigger_update_if_new(title, year):
         return
     normalized_title = str(title).strip().lower()
     try:
-        await updates_collection.insert_one({
-            "title": normalized_title, 
-            "year": year
-        })
+        doc = await updates_collection.find_one({"title": normalized_title, "year": year})
         from utils import send_update
-        asyncio.create_task(send_update(title, year))
-    except DuplicateKeyError:
-        pass
+        if not doc:
+            await updates_collection.insert_one({
+                "title": normalized_title,
+                "year": year
+            })
+            asyncio.create_task(send_update(title, year))
+        else:
+            msg_id = doc.get("message_id")
+            asyncio.create_task(send_update(title, year, edit_message_id=msg_id))
+    except Exception as e:
+        logger.error(f"Error in trigger_update_if_new: {e}")
 
 
 async def save_file(media):
@@ -131,6 +136,10 @@ async def save_file(media):
     data = PTN.parse(file_name)
     title = data.get('title')
     year = data.get('year')
+    if not title:
+        cleaned_title = re.sub(r'(?i)(s\d+|season\s*\d+|e\d+|ep\d+|episode\s*\d+|\d+x\d+).*$', '', file_name)
+        cleaned_title = re.sub(r'[._-]', ' ', cleaned_title).strip()
+        title = cleaned_title if cleaned_title else file_name
 
     if SECOND_FILES_DATABASE_URL and second_collection is not None:
         if await second_collection.find_one({'_id': file_id}):
