@@ -45,46 +45,246 @@ def get_plan_name(days):
     return f"{days} Days Plan"
 
 
-async def send_update(title, year):
+def get_tv_season_episodes_info(files):
+    if not files:
+        return None, "", ""
+
+    season_data = {}
+
+    for doc in files:
+        file_name = doc.get("file_name", "")
+        caption = doc.get("caption", "")
+        text = f"{file_name} {caption}"
+
+        se_matches = re.finditer(
+            r'(?:S|SEASON)\s*0*(\d{1,2})\s*(?:E|EP|EPISODE|X|\-)\s*0*(\d{1,2})(?:\s*(?:-|TO|E|EP)\s*0*(\d{1,2}))?',
+            text,
+            re.IGNORECASE
+        )
+        found_se = False
+        for m in se_matches:
+            try:
+                s_num = int(m.group(1))
+                e_start = int(m.group(2))
+                e_end = int(m.group(3)) if m.group(3) else e_start
+                if s_num not in season_data:
+                    season_data[s_num] = set()
+                for ep in range(min(e_start, e_end), max(e_start, e_end) + 1):
+                    season_data[s_num].add(ep)
+                found_se = True
+            except ValueError:
+                pass
+
+        x_matches = re.finditer(r'\b0*(\d{1,2})x0*(\d{1,2})\b', text, re.IGNORECASE)
+        for m in x_matches:
+            try:
+                s_num = int(m.group(1))
+                e_num = int(m.group(2))
+                if s_num not in season_data:
+                    season_data[s_num] = set()
+                season_data[s_num].add(e_num)
+                found_se = True
+            except ValueError:
+                pass
+
+        if not found_se:
+            s_matches = re.finditer(r'\b(?:S|SEASON)\s*0*(\d{1,2})\b', text, re.IGNORECASE)
+            for m in s_matches:
+                try:
+                    s_num = int(m.group(1))
+                    if s_num not in season_data:
+                        season_data[s_num] = set()
+                    if not season_data[s_num]:
+                        season_data[s_num].add(1)
+                except ValueError:
+                    pass
+
+        import PTN
+        parsed = PTN.parse(file_name)
+        s_ptn = parsed.get('season')
+        e_ptn = parsed.get('episode')
+        if s_ptn is not None:
+            s_list = s_ptn if isinstance(s_ptn, list) else [s_ptn]
+            for s_num in s_list:
+                if isinstance(s_num, int):
+                    if s_num not in season_data:
+                        season_data[s_num] = set()
+                    if e_ptn is not None:
+                        e_list = e_ptn if isinstance(e_ptn, list) else [e_ptn]
+                        for ep in e_list:
+                            if isinstance(ep, int):
+                                season_data[s_num].add(ep)
+                    elif not season_data[s_num]:
+                        season_data[s_num].add(1)
+
+    if not season_data:
+        return None, "", ""
+
+    sorted_seasons = sorted(season_data.keys())
+    min_season = sorted_seasons[0]
+    max_season = sorted_seasons[-1]
+
+    if min_season == max_season:
+        seasons_str = f"{min_season:02d}"
+    else:
+        seasons_str = f"{min_season:02d}-{max_season:02d}"
+
+    episodes_lines = []
+    for s_num in sorted_seasons:
+        eps = season_data[s_num]
+        if eps:
+            min_ep = min(eps)
+            max_ep = max(eps)
+            episodes_lines.append(f"S{s_num:02d} : {min(1, min_ep):02d} - {max_ep:02d}")
+        else:
+            episodes_lines.append(f"S{s_num:02d} : 01 - 01")
+
+    episodes_str = "\n".join(episodes_lines)
+
+    return season_data, seasons_str, episodes_str
+
+
+async def _post_or_edit_update(chat_id, text_or_caption, reply_markup, edit_message_id=None, photo=None):
+    bot = temp.BOT
+    if not bot:
+        return None
+
+    if edit_message_id:
+        try:
+            if photo:
+                msg = await bot.edit_message_caption(
+                    chat_id=chat_id,
+                    message_id=edit_message_id,
+                    caption=text_or_caption,
+                    reply_markup=reply_markup
+                )
+                return msg.id if msg else edit_message_id
+            else:
+                msg = await bot.edit_message_text(
+                    chat_id=chat_id,
+                    message_id=edit_message_id,
+                    text=text_or_caption,
+                    reply_markup=reply_markup
+                )
+                return msg.id if msg else edit_message_id
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to edit update message {edit_message_id}: {e}")
+
+    if photo:
+        msg = await bot.send_photo(
+            chat_id=chat_id,
+            photo=photo,
+            caption=text_or_caption,
+            reply_markup=reply_markup
+        )
+    else:
+        msg = await bot.send_message(
+            chat_id=chat_id,
+            text=text_or_caption,
+            reply_markup=reply_markup,
+            link_preview_options=LinkPreviewOptions(is_disabled=True)
+        )
+    return msg.id if msg else None
+
+
+async def send_update(title, year, edit_message_id=None):
     if not UPDATES_SEND_CHANNEL:
         return
     btn = [[
         InlineKeyboardButton('📥 Request from Here 📥', url=FILMS_LINK)
     ]]
+    from database.ia_filterdb import get_search_results, updates_collection
+    files = await get_search_results(title)
+    season_info, seasons_str, episodes_str = get_tv_season_episodes_info(files)
+
     data = await get_poster(f"{title} {year}")
+    is_tv = (data and data.get('kind') == 'tv') or bool(season_info)
+
     if not data:
         _year = f"({year})" if year else ""
-        await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=f"✅ New Added ✅\n\n🏷 Title: {title.title()} {_year}", reply_markup=InlineKeyboardMarkup(btn))
+        if is_tv and seasons_str and episodes_str:
+            caption = f"✅ New Added ✅\n\n🏷 Title: {title.title()} {_year}\n\n<b>🔅 Sᴇᴀsᴏɴ : {seasons_str}\n🔹 Eᴘɪsᴏᴅᴇs :\n{episodes_str}</b>"
+        else:
+            caption = f"✅ New Added ✅\n\n🏷 Title: {title.title()} {_year}"
+
+        msg_id = await _post_or_edit_update(
+            chat_id=UPDATES_SEND_CHANNEL,
+            text_or_caption=caption,
+            reply_markup=InlineKeyboardMarkup(btn),
+            edit_message_id=edit_message_id,
+            photo=None
+        )
+        if msg_id:
+            try:
+                await updates_collection.update_one(
+                    {"title": str(title).strip().lower(), "year": year},
+                    {"$set": {"message_id": msg_id}}
+                )
+            except Exception:
+                pass
         return
-    caption = script.NEW_ADDED_TEMPLATE.format(
-        title=data['title'],
-        kind=data['kind'],
-        votes=data['votes'],
-        tmdb_id=data["tmdb_id"],
-        runtime=data["runtime"],
-        release_date=data['release_date'],
-        year=data['year'],
-        genres=data['genres'],
-        plot=data['plot'],
-        rating=data['rating'],
-        url=data['url'],
-        languages=data['languages'],
-        countries=data['countries']
-    )
+
+    if is_tv and seasons_str and episodes_str:
+        caption = script.NEW_TV_ADDED_TEMPLATE.format(
+            title=data['title'],
+            kind=data['kind'],
+            votes=data['votes'],
+            tmdb_id=data["tmdb_id"],
+            runtime=data["runtime"],
+            release_date=data['release_date'],
+            year=data['year'],
+            genres=data['genres'],
+            plot=data['plot'],
+            rating=data['rating'],
+            url=data['url'],
+            languages=data['languages'],
+            countries=data['countries'],
+            seasons=seasons_str,
+            episodes=episodes_str
+        )
+    else:
+        caption = script.NEW_ADDED_TEMPLATE.format(
+            title=data['title'],
+            kind=data['kind'],
+            votes=data['votes'],
+            tmdb_id=data["tmdb_id"],
+            runtime=data["runtime"],
+            release_date=data['release_date'],
+            year=data['year'],
+            genres=data['genres'],
+            plot=data['plot'],
+            rating=data['rating'],
+            url=data['url'],
+            languages=data['languages'],
+            countries=data['countries']
+        )
     
     poster_path = await generate_poster_image(data)
     photo = poster_path if poster_path else data.get('poster')
-    if photo:
-        try:
-            await temp.BOT.send_photo(chat_id=UPDATES_SEND_CHANNEL, photo=photo, caption=caption, reply_markup=InlineKeyboardMarkup(btn))
-        finally:
-            if poster_path and os.path.exists(poster_path):
-                try:
-                    os.remove(poster_path)
-                except Exception:
-                    pass
-    else:
-        await temp.BOT.send_message(chat_id=UPDATES_SEND_CHANNEL, text=caption, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True))
+
+    try:
+        msg_id = await _post_or_edit_update(
+            chat_id=UPDATES_SEND_CHANNEL,
+            text_or_caption=caption,
+            reply_markup=InlineKeyboardMarkup(btn),
+            edit_message_id=edit_message_id,
+            photo=photo
+        )
+        if msg_id:
+            try:
+                await updates_collection.update_one(
+                    {"title": str(title).strip().lower(), "year": year},
+                    {"$set": {"message_id": msg_id}}
+                )
+            except Exception:
+                pass
+    finally:
+        if poster_path and os.path.exists(poster_path):
+            try:
+                os.remove(poster_path)
+            except Exception:
+                pass
 
 
 async def handle_next_back(data, offset=0, max_results=0):

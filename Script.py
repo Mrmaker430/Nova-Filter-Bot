@@ -185,3 +185,18 @@ class script(object):
 
 ☀️ Aᴜᴅɪᴏ: {languages}
 ⏱️ RunTime: <code>{runtime}</code></b>"""
+
+    NEW_TV_ADDED_TEMPLATE = """<blockquote>📫 𝖭𝖤𝖶 𝖥𝖨𝖫𝖤 𝖠𝖣𝖣𝖤𝖣 ✅</blockquote>
+
+🏷️ <b>Tɪᴛʟᴇ: {title} [ <a href="{url}">Mᴏʀᴇ Dᴇᴛᴀɪʟs</a> ]
+
+🎭 Gᴇɴʀᴇs: {genres}
+📆 Yᴇᴀʀ: {year}
+🌟 Rᴀᴛɪɴɢ: <code>{rating} / 10</code>
+
+☀️ Aᴜᴅɪᴏ: {languages}
+⏱️ RunTime: <code>{runtime}</code>
+
+🔅 Sᴇᴀsᴏɴ : {seasons}
+🔹 Eᴘɪsᴏᴅᴇs :
+{episodes}</b>"""
