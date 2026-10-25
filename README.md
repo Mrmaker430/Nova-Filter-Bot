@@ -1,6 +1,3 @@
-
-
-```markdown
 # 🚀 Nova Filter Bot
 
 A fast, self-hosted Telegram Auto Filter Bot. Index files from your channels, let users search them instantly, and control everything from your own server.
@@ -94,8 +91,7 @@ ADMINS=123456789
 FILES_DATABASE_URL=mongodb+srv://...
 DATA_DATABASE_URL=mongodb+srv://...
 LOG_CHANNEL=-1001234567890
-BIN_CHANNEL=-1001234567890
-```
+BIN_CHANNEL=-1001234567890`
 
 Optional variables — force subscribe channels, index channels, TMDb API key, languages — are documented in [`info.py`](info.py).
 
