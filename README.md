@@ -1,167 +1,163 @@
 <div align="center">
 
-# 🤖 Nova Filter Bot 🤖
+# 🚀 Nova Filter Bot
+
+**The most complete Auto Filter Bot for Telegram — built for speed, scale, and simplicity.**
+
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Telegram](https://img.shields.io/badge/Telegram-Bot-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
+[![License](https://img.shields.io/badge/License-AGPL%20v3.0-blue?style=for-the-badge)](https://github.com/xHansaka-Anuhas/Nova-Filter-Bot/blob/main/LICENSE)
+
+[![Demo Bot](https://img.shields.io/badge/🤖_Demo_Bot-TestbotAf__bot-2CA5E0?style=for-the-badge&logo=telegram)](https://t.me/TestbotAf_bot)
+[![Support Group](https://img.shields.io/badge/💬_Support-Nova__Filter__Official-2CA5E0?style=for-the-badge&logo=telegram)](https://t.me/Nova_Filter_Official)
 
 </div>
 
+---
 
-## 𝐹𝑒𝑎𝑡𝑢𝑟𝑒𝑠
-- [x] 𝐼𝑀𝐷𝐵 𝑇𝑒𝑚𝑝𝑙𝑎𝑡𝑒 𝑆𝑒𝑡
-- [x] 𝑂𝑛𝑙𝑖𝑛𝑒 𝑠𝑡𝑟𝑒𝑎𝑚 𝑎𝑛𝑑 𝑑𝑜𝑤𝑛𝑙𝑜𝑎𝑑
-- [x] 𝑉𝑒𝑟𝑖𝑓𝑖𝑐𝑎𝑡𝑖𝑜𝑛 𝑚𝑒𝑡ℎ𝑜𝑑
-- [x] 𝐹𝑖𝑙𝑒 𝑐𝑎𝑝𝑡𝑖𝑜𝑛 𝑠𝑒𝑡
-- [x] 𝐼𝑛𝑑𝑒𝑥𝑒𝑠 𝐹𝑖𝑙𝑒𝑠 𝑎𝑏𝑜𝑣𝑒 4𝐺𝐵
-- [x] 𝑆𝑝𝑒𝑐𝑖𝑓𝑖𝑐 𝑓𝑖𝑙𝑒𝑠 𝐷𝑒𝑙𝑒𝑡𝑒 𝑀𝑜𝑑𝑒
-- [x] 𝑆𝑒𝑡𝑡𝑖𝑛𝑔𝑠 𝑀𝑒𝑛𝑢
-- [x] 𝑀𝑢𝑙𝑡𝑖𝑝𝑙𝑒 𝐹𝑜𝑟𝑐𝑒 𝑆𝑢𝑏𝑠𝑐𝑟𝑖𝑝𝑡𝑖𝑜𝑛
-- [x] 𝑊𝑒𝑙𝑐𝑜𝑚𝑒 𝑀𝑒𝑠𝑠𝑎𝑔𝑒 𝑆𝑒𝑡
-- [x] 𝑆ℎ𝑜𝑟𝑡𝑙𝑖𝑛𝑘 𝑠𝑢𝑝𝑝𝑜𝑟𝑡
-- [x] 𝐴𝑢𝑡𝑜𝑚𝑎𝑡𝑖𝑐 𝐹𝑖𝑙𝑒 𝐹𝑖𝑙𝑡𝑒𝑟𝑖𝑛𝑔
-- [x] 𝐹𝑖𝑙𝑒 𝑃𝑟𝑜𝑡𝑒𝑐𝑡
-- [x] 𝑈𝑠𝑒𝑟 𝐵𝑟𝑜𝑎𝑑𝑐𝑎𝑠𝑡
-- [x] 𝐺𝑟𝑜𝑢𝑝 𝐵𝑟𝑜𝑎𝑑𝑐𝑎𝑠𝑡
-- [x] 𝐼𝑛𝑙𝑖𝑛𝑒 𝑆𝑒𝑎𝑟𝑐ℎ
-- [x] 𝑅𝑎𝑛𝑑𝑜𝑚 𝑝𝑖𝑐𝑠
-- [x] 𝐵𝑜𝑡 𝑆𝑡𝑎𝑡𝑠
-- [x] 𝑆𝑝𝑒𝑙𝑙𝑖𝑛𝑔 𝐶ℎ𝑒𝑐𝑘 𝐹𝑒𝑎𝑡𝑢𝑟𝑒
-- [x] 𝐴𝑢𝑡𝑜 𝐷𝑒𝑙𝑒𝑡𝑒
-- [x] 𝐴𝑛𝑑 𝑀𝑜𝑟𝑒...
+## 📖 What is Nova Filter Bot?
 
-## Demo Bot
-* [![Demo](https://img.shields.io/static/v1?label=Demo&message=Bot&color=critical)](https://t.me/TestbotAf_bot)
+**Nova Filter Bot** is a high-performance Telegram Auto Filter Bot that indexes files from your channels and delivers them to users through fast inline and auto-filter search. It is designed for channel administrators who want a **self-hosted, fully controllable file distribution system** — no middlemen, no monthly fees, no limits beyond what your own infrastructure allows.
 
-## 𝐶𝑜𝑚𝑚𝑎𝑛𝑑𝑠
-```
-• /start - to check bot alive or not.
-• /index_channels - to check how many index channel id added.
-• /stats - to get bot status.
-• /ping - view bot's ping (latency)
-• /img_2_link - upload image to uguu.se and get link
-• /settings - to change group settings as your wish.
-• /delete - to delete files using query.
-• /delete_all - to delete all indexed file.
-• /broadcast - to send message to all bot users.
-• /grp_broadcast - to send message to all groups.
-• /pin_broadcast - to send message as pin to all bot users.
-• /pin_grp_broadcast - to send message as pin to all groups.
-• /restart - to restart bot.
-• /id - to check group or channel id.
-• /leave - to leave your bot from particular group.
-• /unban_grp - to enable group.
-• /ban_grp - to disable group.
-• /ban_user - to ban a users from bot.
-• /unban_user - to unban a users from bot.
-• /users - to get all users details.
-• /chats - to get all groups.
-• /invite_link - to generate invite link.
-• /index - to index bot accessible channels.
-```
+Whether you run a movie archive, a software repository, or a private media library, Nova turns your Telegram channels into a **searchable, user-friendly file delivery service**.
 
-## Variables
-### Required Variables
-* `BOT_TOKEN`: Create a bot using [@BotFather](https://telegram.dog/BotFather), and get the Telegram API token.
-* `API_ID`: Get this value from [telegram.org](https://my.telegram.org/apps). For more help watch this [tutorial](https://www.youtube.com/results?search_query=how+to+get+Telegram+API+ID+API+HASH)
-* `API_HASH`: Get this value from [telegram.org](https://my.telegram.org/apps). For more help watch this [tutorial](https://www.youtube.com/results?search_query=how+to+get+Telegram+API+ID+API+HASH)
-* `ADMINS`: ID of Admins. (Multiple admins can be used separated by space)
-* `FILES_DATABASE_URL`: MongoDB URL for 1st files database. Get this value from [MongoDB](https://www.mongodb.com). For more help watch this [tutorial](https://www.youtube.com/results?search_query=mongodb+atlas+connection+string+python)
-* `DATA_DATABASE_URL`: for save user, group, etc data.
-* `LOG_CHANNEL` : A channel to log the activities of bot. add channel id and Make sure bot is an admin in the channel.
-* `BIN_CHANNEL`: A channel to the stream and download feature, add channel id and make bot admin in channel.
-### Optional Variables
-* `FORCE_SUB_CHANNELS`: ID of force subscribe channels (Multiple channels can be used separated by space)
-* `REQUEST_FORCE_SUB_CHANNEL`: ID of request force subscribe channels (Multiple channels can be used separated by space)
-* `INDEX_CHANNELS`: Username or ID of your files channels (Multiple channels can be used separated by space)
-* `LANGUAGES`: Language of your bot search (Multiple languages can be used separated by space)
-* `TMDB_API_KEY`: API key for TMDb to get TMDb data. Get API key from [here](https://www.themoviedb.org/settings/api)
-* `UPDATES_SEND_CHANNEL`: Channel ID for send updates if added new movie or tv series to database (Must need to add TMDB_API_KEY for send with TMDb info)
-* `URL`: Add you deployed bot app link or vps IP address
-* Check [info.py](https://github.com/xHansaka-Anuhas/Nova-Filter-Bot/blob/main/info.py) for more optional variables
+---
 
+## ✨ Features at a Glance
 
-## Deploy
-<details><summary>Deploy To Heroku</summary>
+| | Feature | Description |
+|---|---|---|
+| 🔍 | **Auto Filter Search** | Users type a keyword in the group; the bot replies with matching files instantly. |
+| 📑 | **Manual Filter** | Admins can set custom keyword-to-file rules for specific groups. |
+| 📡 | **Inline Search** | Search across all indexed files from any chat via inline mode. |
+| 🎬 | **IMDb / TMDb Integration** | Automatically fetches posters, ratings, and metadata for movies and TV shows. |
+| 🔒 | **Force Subscription** | Require users to join your channels before using the bot. |
+| 👑 | **Premium / Access Control** | Grant unlimited or priority access to specific users. |
+| 📢 | **Broadcast System** | Send messages to all users, all groups, or pin announcements. |
+| 🛠️ | **Admin Dashboard** | Full control over files, users, groups, bans, and settings. |
+| 🗂️ | **Multi-Channel Indexing** | Index files from multiple channels into a single searchable database. |
+| 🌐 | **Multi-Language Support** | Serve users in multiple languages simultaneously. |
+| 🖼️ | **Image to Link** | Upload images to `uguu.se` and get a shareable link directly in Telegram. |
+| ⚡ | **Fast & Lightweight** | Built on Kurigram (MTProto) for speed; runs comfortably on a 512 MB VPS. |
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://www.heroku.com/deploy)
+---
 
-</details>
+## 🎮 Commands
 
-<details><summary>Deploy To Koyeb</summary>
+### 👤 User Commands
+
+| Command | What it does |
+|---|---|
+| `/start` | Check if the bot is alive and see the welcome message |
+| `/ping` | View the bot's latency |
+| `/id` | Get the ID of the current group or channel |
+| `/img_2_link` | Upload an image to `uguu.se` and receive a direct link |
+| `/settings` | Adjust group-level settings (for admins) |
+| `/index_channels` | See how many index channels are configured |
+| `/stats` | View bot statistics |
+
+### 🛡️ Admin Commands
+
+| Command | What it does |
+|---|---|
+| `/index` | Index files from a connected channel |
+| `/delete` | Delete files matching a query |
+| `/delete_all` | Wipe the entire indexed file database |
+| `/broadcast` | Send a message to all bot users |
+| `/grp_broadcast` | Send a message to all groups |
+| `/pin_broadcast` | Broadcast and pin a message to all users |
+| `/pin_grp_broadcast` | Broadcast and pin a message to all groups |
+| `/ban_user` / `/unban_user` | Ban or unban a user from the bot |
+| `/ban_grp` / `/unban_grp` | Disable or enable the bot in a group |
+| `/users` | List all registered users |
+| `/chats` | List all connected groups |
+| `/invite_link` | Generate an invite link for the current chat |
+| `/leave` | Remove the bot from a group |
+| `/restart` | Restart the bot process |
+
+---
+
+## ⚙️ Configuration
+
+Nova is configured entirely through environment variables. Copy `.env.example` to `.env` and fill in the required values.
+
+### 🔴 Required Variables
+
+| Variable | Description |
+|---|---|
+| `BOT_TOKEN` | Telegram Bot API token from [@BotFather](https://telegram.dog/BotFather) |
+| `API_ID` | Telegram API ID from [my.telegram.org](https://my.telegram.org/apps) |
+| `API_HASH` | Telegram API Hash from [my.telegram.org](https://my.telegram.org/apps) |
+| `ADMINS` | Space-separated list of admin user IDs |
+| `FILES_DATABASE_URL` | MongoDB connection string for the **files** database |
+| `DATA_DATABASE_URL` | MongoDB connection string for **user/group data** |
+| `LOG_CHANNEL` | Channel ID where the bot logs activity (bot must be admin) |
+| `BIN_CHANNEL` | Channel ID used for streaming and download features (bot must be admin) |
+
+### 🟡 Optional Variables
+
+| Variable | Description |
+|---|---|
+| `FORCE_SUB_CHANNELS` | Space-separated IDs of channels users must join |
+| `REQUEST_FORCE_SUB_CHANNEL` | Channel ID for request-based force subscription |
+| `INDEX_CHANNELS` | Usernames or IDs of channels to index |
+| `LANGUAGES` | Space-separated language codes for bot search |
+| `TMDB_API_KEY` | TMDb API key for fetching movie/TV metadata |
+| `UPDATES_SEND_CHANNEL` | Channel ID for new-content notifications |
+| `URL` | Your deployed bot URL or VPS IP address |
+
+> 📄 For the full list of optional variables, see [`info.py`](https://github.com/xHansaka-Anuhas/Nova-Filter-Bot/blob/main/info.py).
+
+---
+
+## 🚢 Deployment
+
+Nova can be deployed in four ways. Choose the one that fits your setup.
+
+### ☁️ One-Click Deploy
+
+<div align="center">
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://www.heroku.com/deploy)
 
 [![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&builder=dockerfile&repository=https://github.com/xHansaka-Anuhas/Nova-Filter-Bot)
 
-</details>
-
-<details><summary>Deploy To Render</summary>
-
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
-</details>
+</div>
 
-<details><summary>Deploy To VPS</summary>
+### 🖥️ VPS / Docker
 
-1. Run the following command to ensure your system is up to date:
-```
+```bash
+# 1. Update system packages
 sudo apt update && sudo apt upgrade -y
-```
-2. If Docker is not already installed, install it using:
-```
+
+# 2. Install Docker
 sudo apt install docker.io -y
-```
-3. Verify the installation:
-```
+
+# 3. Verify Docker is installed
 docker --version
-```
-4. Ensure Docker starts on boot and is running:
-```
+
+# 4. Enable Docker on boot
 sudo systemctl enable docker
 sudo systemctl start docker
-```
-5. Clone this repository (also you can upload manually repo to your VPS):
-```
+
+# 5. Clone the repository
 git clone https://github.com/xHansaka-Anuhas/Nova-Filter-Bot
-cd Auto-Filter-Bot
-```
-6. Navigate to your bot directory and build the Docker image:
-```
+cd Nova-Filter-Bot
+
+# 6. Build the Docker image
 sudo docker build -t auto-filter-bot .
-```
-7. Once the image is built, start the container:
-```
+
+# 7. Run the container
 sudo docker run -d -p 80:80 --name Auto-Filter-Bot auto-filter-bot
-```
-8. Verify that the bot is running:
-```
+
+# 8. Verify it is running
 sudo docker ps
-```
-9. If the bot crashes or needs to restart:
-```
+
+# 9. Restart if needed
 sudo docker restart Auto-Filter-Bot
-```
-10. If something is not working, check logs:
-```
+
+# 10. Check logs
 sudo docker logs Auto-Filter-Bot
-```
-
-</details>
-
-## Support
-* [![Support](https://img.shields.io/static/v1?label=Support&message=Group&color=critical)](https://t.me/Nova_Filter_Official)
-
-## Credits 
-* [![EvaMaria](https://img.shields.io/static/v1?label=EvaMaria&message=Developers&color=critical)](https://t.me/TeamEvamaria)
-* [![Hansaka](https://img.shields.io/static/v1?label=Hansaka&message=TG&color=critical)](https://t.me/Hansaka_Anuhas)
-
-## Thanks To
-* [Kurigram](https://github.com/KurimuzonAkuma/kurigram) For Telegram MTProto API Framework
-* [Contributors](https://github.com/xHansaka-Anuhas/Nova-Filter-Bot/graphs/contributors) For free helps
-* And to everyone who helped
-
-## Note
-* Importing this repo instead of forking is strictly prohibited, Kindly fork and edit as your wish. Must Give Credits for [developer(s)](https://t.me/Hansaka_Anuhas)
-* If you find any bugs or errors, [report](https://t.me/Nova_Filter_Official) it
-
-## Disclaimer
-[![GNU General Public License v3.0](https://www.gnu.org/graphics/gplv3-with-text-136x68.png)](https://www.gnu.org/licenses/agpl-3.0.en.html#header)  
-
-* Licensed under [GNU AGPL v3.0](https://github.com/xHansaka-Anuhas/Nova-Filter-Bot/blob/main/LICENSE)
-Selling The Codes To Other People For Money Is *Strictly Prohibited*.
