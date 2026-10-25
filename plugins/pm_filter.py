@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from info import AUTO_FILTER, PM_SEARCH, VERIFY_TUTORIAL, IS_PREMIUM, PICS, TUTORIAL, TUTORIAL_NAME, SHORTLINK_API, SHORTLINK_URL, OWNER_USERNAME, SECOND_FILES_DATABASE_URL, ADMINS, URL, MAX_BTN, BIN_CHANNEL, IS_STREAM, DELETE_TIME, FILMS_LINK, LOG_CHANNEL, SUPPORT_GROUP, SUPPORT_LINK, UPDATES_LINK, LANGUAGES, QUALITY
 from pyrogram.types import WebAppInfo, PreCheckoutQuery, Message, LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto, LinkPreviewOptions
 from pyrogram import Client, filters, enums
-from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, generate_poster_image, get_imdb_suggestions, temp, get_settings, save_group_settings, render_list_page
+from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, generate_poster_image, get_imdb_suggestions, temp, get_settings, save_group_settings, render_list_page, to_small_caps
 from database.users_chats_db import db
 from database.ia_filterdb import delete_files, delete_all_files, db_count_documents, second_db_count_documents, get_search_results
 from plugins.commands import get_grp_stg
@@ -278,52 +278,62 @@ async def next_page(bot, query):
         
     if total <= MAX_BTN:
         btn.append(
-            [InlineKeyboardButton("🚫 No More Pages", callback_data="buttons")]
+            [InlineKeyboardButton(f"💎 {to_small_caps('Buy Premium')}", url=f"https://t.me/{temp.U_NAME}?start=premium", style=enums.ButtonStyle.SUCCESS)]
+        )
+        btn.append(
+            [InlineKeyboardButton(f"🚫 {to_small_caps('No More Pages')}", callback_data="buttons", style=enums.ButtonStyle.DANGER)]
         )
     elif n_offset == 0:
         btn.append(
-            [InlineKeyboardButton("🔙 Back", callback_data=f"next_{req}_{key}_{off_set}"),
+            [InlineKeyboardButton(f"🔙 {to_small_caps('Back')}", callback_data=f"next_{req}_{key}_{off_set}"),
              InlineKeyboardButton(f"{math.ceil(int(offset) / MAX_BTN) + 1}/{math.ceil(total / MAX_BTN)}", callback_data="buttons")]
+        )
+        btn.append(
+            [InlineKeyboardButton(f"💎 {to_small_caps('Buy Premium')}", url=f"https://t.me/{temp.U_NAME}?start=premium", style=enums.ButtonStyle.SUCCESS)]
         )
     elif off_set is None:
         btn.append(
             [InlineKeyboardButton(f"{math.ceil(int(offset) / MAX_BTN) + 1}/{math.ceil(total / MAX_BTN)}", callback_data="buttons"),
-             InlineKeyboardButton("⏭️ Next", callback_data=f"next_{req}_{key}_{n_offset}")])
+             InlineKeyboardButton(f"⏭️ {to_small_caps('Next')}", callback_data=f"next_{req}_{key}_{n_offset}")]
+        )
+        btn.append(
+            [InlineKeyboardButton(f"💎 {to_small_caps('Buy Premium')}", url=f"https://t.me/{temp.U_NAME}?start=premium", style=enums.ButtonStyle.SUCCESS)]
+        )
     else:
         btn.append(
             [
-                InlineKeyboardButton("🔙 Back", callback_data=f"next_{req}_{key}_{off_set}"),
+                InlineKeyboardButton(f"🔙 {to_small_caps('Back')}", callback_data=f"next_{req}_{key}_{off_set}"),
                 InlineKeyboardButton(f"{math.ceil(int(offset) / MAX_BTN) + 1}/{math.ceil(total / MAX_BTN)}", callback_data="buttons"),
-                InlineKeyboardButton("⏭️ Next", callback_data=f"next_{req}_{key}_{n_offset}")
+                InlineKeyboardButton(f"⏭️ {to_small_caps('Next')}", callback_data=f"next_{req}_{key}_{n_offset}")
             ]
         )
+        btn.append(
+            [InlineKeyboardButton(f"💎 {to_small_caps('Buy Premium')}", url=f"https://t.me/{temp.U_NAME}?start=premium", style=enums.ButtonStyle.SUCCESS)]
+        )
 
-    lang = "🌐 Language" if select.get('lang', 'any') == 'any' else f"✔️ {select['lang'].title()}"
-    qual = "💎 Quality" if select.get('qual', 'any') == 'any' else f"✔️ {select['qual'].title()}"
-    seas = "📁 Season" if select.get('season', 'any') == 'any' else f"✔️ Season {select['season']}"
-    epis = "🎬 Episode" if select.get('episode', 'any') == 'any' else f"✔️ Episode {select['episode']}"
+    lang = f"🌐 {to_small_caps('Language')}" if select.get('lang', 'any') == 'any' else f"✔️ {to_small_caps(select['lang'])}"
+    qual = f"💎 {to_small_caps('Quality')}" if select.get('qual', 'any') == 'any' else f"✔️ {to_small_caps(select['qual'])}"
+    seas = f"📁 {to_small_caps('Season')}" if select.get('season', 'any') == 'any' else f"✔️ {to_small_caps('Season')} {select['season']}"
+    epis = f"🎬 {to_small_caps('Episode')}" if select.get('episode', 'any') == 'any' else f"✔️ {to_small_caps('Episode')} {select['episode']}"
     btn.insert(0,
-                [InlineKeyboardButton(lang, callback_data=f"languages#{key}#{req}#{offset}"),
-                InlineKeyboardButton(qual, callback_data=f"quality#{key}#{req}#{offset}")]
+                [InlineKeyboardButton(lang, callback_data=f"languages#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY),
+                InlineKeyboardButton(qual, callback_data=f"quality#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY)]
             )
     btn.insert(1,
-                [InlineKeyboardButton(seas, callback_data=f"season#{key}#{req}#{offset}"),
-                InlineKeyboardButton(epis, callback_data=f"episode#{key}#{req}#{offset}")]
+                [InlineKeyboardButton(seas, callback_data=f"season#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY),
+                InlineKeyboardButton(epis, callback_data=f"episode#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY)]
             )
 
     if settings['shortlink'] and not await is_premium(query.from_user.id, bot):
         btn.insert(2,
-            [InlineKeyboardButton("⚡ Send All", url=await get_shortlink(settings['url'], settings['api'], f'https://t.me/{temp.U_NAME}?start=all_{query.message.chat.id}_{key}')),
-             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])]
+            [InlineKeyboardButton(f"⚡ {to_small_caps('Send All')}", url=await get_shortlink(settings['url'], settings['api'], f'https://t.me/{temp.U_NAME}?start=all_{query.message.chat.id}_{key}'), style=enums.ButtonStyle.SUCCESS),
+             InlineKeyboardButton(to_small_caps(settings['tutorial_name']), url=settings['tutorial'], style=enums.ButtonStyle.SUCCESS)]
         )
     else:
         btn.insert(2,
-            [InlineKeyboardButton("⚡ Send All", callback_data=f"send_all#{key}#{req}"),
-             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])]
+            [InlineKeyboardButton(f"⚡ {to_small_caps('Send All')}", callback_data=f"send_all#{key}#{req}", style=enums.ButtonStyle.SUCCESS),
+             InlineKeyboardButton(to_small_caps(settings['tutorial_name']), url=settings['tutorial'], style=enums.ButtonStyle.SUCCESS)]
         )
-    btn.append(
-        [InlineKeyboardButton('💎 Buy Premium', url=f"https://t.me/{temp.U_NAME}?start=premium")]
-    )
 
     await query.message.edit_text(cap + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), link_preview_options=LinkPreviewOptions(is_disabled=True), parse_mode=enums.ParseMode.HTML)
 
@@ -1697,35 +1707,38 @@ async def auto_filter(client, msg, s, spoll=False):
     if offset != 0:
         btn.append(
             [InlineKeyboardButton(text=f"1/{math.ceil(int(total_results) / MAX_BTN)}", callback_data="buttons"),
-             InlineKeyboardButton(text="⏭️ Next", callback_data=f"next_{req}_{key}_{offset}")]
+             InlineKeyboardButton(text=f"⏭️ {to_small_caps('Next')}", callback_data=f"next_{req}_{key}_{offset}")]
+        )
+        btn.append(
+            [InlineKeyboardButton(f"💎 {to_small_caps('Buy Premium')}", url=f"https://t.me/{temp.U_NAME}?start=premium", style=enums.ButtonStyle.SUCCESS)]
         )
     else:
         btn.append(
-            [InlineKeyboardButton("🚫 No More Pages", callback_data="buttons")]
+            [InlineKeyboardButton(f"💎 {to_small_caps('Buy Premium')}", url=f"https://t.me/{temp.U_NAME}?start=premium", style=enums.ButtonStyle.SUCCESS)]
+        )
+        btn.append(
+            [InlineKeyboardButton(f"🚫 {to_small_caps('No More Pages')}", callback_data="buttons", style=enums.ButtonStyle.DANGER)]
         )
     
     btn.insert(0,
-                [InlineKeyboardButton("🌐 Language", callback_data=f"languages#{key}#{req}#{offset}"),
-                InlineKeyboardButton("💎 Quality", callback_data=f"quality#{key}#{req}#{offset}")]
+                [InlineKeyboardButton(f"🌐 {to_small_caps('Language')}", callback_data=f"languages#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY),
+                InlineKeyboardButton(f"💎 {to_small_caps('Quality')}", callback_data=f"quality#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY)]
             )
     btn.insert(1,
-                [InlineKeyboardButton("📁 Season", callback_data=f"season#{key}#{req}#{offset}"),
-                InlineKeyboardButton("🎬 Episode", callback_data=f"episode#{key}#{req}#{offset}")]
+                [InlineKeyboardButton(f"📁 {to_small_caps('Season')}", callback_data=f"season#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY),
+                InlineKeyboardButton(f"🎬 {to_small_caps('Episode')}", callback_data=f"episode#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY)]
             )
 
     if settings['shortlink'] and not await is_premium(message.from_user.id, client):
         btn.insert(2,
-            [InlineKeyboardButton("⚡ Send All", url=await get_shortlink(settings['url'], settings['api'], f'https://t.me/{temp.U_NAME}?start=all_{message.chat.id}_{key}')),
-             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])]
+            [InlineKeyboardButton(f"⚡ {to_small_caps('Send All')}", url=await get_shortlink(settings['url'], settings['api'], f'https://t.me/{temp.U_NAME}?start=all_{message.chat.id}_{key}'), style=enums.ButtonStyle.SUCCESS),
+             InlineKeyboardButton(to_small_caps(settings['tutorial_name']), url=settings['tutorial'], style=enums.ButtonStyle.SUCCESS)]
         )
     else:
         btn.insert(2,
-            [InlineKeyboardButton("⚡ Send All", callback_data=f"send_all#{key}#{req}"),
-             InlineKeyboardButton(settings['tutorial_name'], url=settings['tutorial'])]
+            [InlineKeyboardButton(f"⚡ {to_small_caps('Send All')}", callback_data=f"send_all#{key}#{req}", style=enums.ButtonStyle.SUCCESS),
+             InlineKeyboardButton(to_small_caps(settings['tutorial_name']), url=settings['tutorial'], style=enums.ButtonStyle.SUCCESS)]
         )
-    btn.append(
-        [InlineKeyboardButton('💎 Buy Premium', url=f"https://t.me/{temp.U_NAME}?start=premium")]
-    )
 
     imdb = await get_poster(search) if settings["imdb"] else None
     TEMPLATE = settings['template']
