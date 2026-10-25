@@ -36,3 +36,71 @@ def test_button_structure_in_commands():
     assert btn[0][0].text == "⚡ Watch & Download"
     assert btn[1][0].text == "🎧 Audio Tracks 🎧"
     assert btn[1][0].callback_data == f"extract_data:{f_id_str}"
+
+
+def test_to_small_caps():
+    from utils import to_small_caps
+    assert to_small_caps("Language") == "ʟᴀɴɢᴜᴀɢᴇ"
+    assert to_small_caps("Quality") == "ǫᴜᴀʟɪᴛʏ"
+    assert to_small_caps("Season") == "ꜱᴇᴀꜱᴏɴ"
+    assert to_small_caps("Episode") == "ᴇᴘɪꜱᴏᴅᴇ"
+    assert to_small_caps("Send All") == "ꜱᴇɴᴅ ᴀʟʟ"
+    assert to_small_caps("Tutorial") == "ᴛᴜᴛᴏʀɪᴀʟ"
+    assert to_small_caps("Buy Premium") == "ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ"
+    assert to_small_caps("No More Pages") == "ɴᴏ ᴍᴏʀᴇ ᴘᴀɢᴇꜱ"
+    assert to_small_caps("Next") == "ɴᴇxᴛ"
+    assert to_small_caps("Back") == "ʙᴀᴄᴋ"
+
+
+def test_search_results_button_styles_and_order():
+    from utils import to_small_caps
+    from pyrogram import enums
+
+    req = 12345
+    key = "testkey"
+    offset = 0
+
+    # Test top filter buttons (rows 0 and 1)
+    btn_row_0 = [
+        InlineKeyboardButton(f"🌐 {to_small_caps('Language')}", callback_data=f"languages#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY),
+        InlineKeyboardButton(f"💎 {to_small_caps('Quality')}", callback_data=f"quality#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY)
+    ]
+    btn_row_1 = [
+        InlineKeyboardButton(f"📁 {to_small_caps('Season')}", callback_data=f"season#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY),
+        InlineKeyboardButton(f"🎬 {to_small_caps('Episode')}", callback_data=f"episode#{key}#{req}#{offset}", style=enums.ButtonStyle.PRIMARY)
+    ]
+
+    assert btn_row_0[0].style == enums.ButtonStyle.PRIMARY
+    assert btn_row_0[0].text == "🌐 ʟᴀɴɢᴜᴀɢᴇ"
+    assert btn_row_0[1].style == enums.ButtonStyle.PRIMARY
+    assert btn_row_0[1].text == "💎 ǫᴜᴀʟɪᴛʏ"
+    assert btn_row_1[0].style == enums.ButtonStyle.PRIMARY
+    assert btn_row_1[0].text == "📁 ꜱᴇᴀꜱᴏɴ"
+    assert btn_row_1[1].style == enums.ButtonStyle.PRIMARY
+    assert btn_row_1[1].text == "🎬 ᴇᴘɪꜱᴏᴅᴇ"
+
+    # Test action row (Send All & Tutorial)
+    btn_row_2 = [
+        InlineKeyboardButton(f"⚡ {to_small_caps('Send All')}", callback_data=f"send_all#{key}#{req}", style=enums.ButtonStyle.SUCCESS),
+        InlineKeyboardButton(to_small_caps("Tutorial"), url="https://example.com", style=enums.ButtonStyle.SUCCESS)
+    ]
+
+    assert btn_row_2[0].style == enums.ButtonStyle.SUCCESS
+    assert btn_row_2[0].text == "⚡ ꜱᴇɴᴅ ᴀʟʟ"
+    assert btn_row_2[1].style == enums.ButtonStyle.SUCCESS
+    assert btn_row_2[1].text == "ᴛᴜᴛᴏʀɪᴀʟ"
+
+    # Test single page bottom buttons (Buy Premium then No More Pages)
+    btn_bottom_buy = InlineKeyboardButton(f"💎 {to_small_caps('Buy Premium')}", url="https://t.me/bot?start=premium", style=enums.ButtonStyle.SUCCESS)
+    btn_bottom_nomore = InlineKeyboardButton(f"🚫 {to_small_caps('No More Pages')}", callback_data="buttons", style=enums.ButtonStyle.DANGER)
+
+    assert btn_bottom_buy.style == enums.ButtonStyle.SUCCESS
+    assert btn_bottom_buy.text == "💎 ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ"
+    assert btn_bottom_nomore.style == enums.ButtonStyle.DANGER
+    assert btn_bottom_nomore.text == "🚫 ɴᴏ ᴍᴏʀᴇ ᴘᴀɢᴇꜱ"
+
+    # Verify order: Buy Premium comes before No More Pages
+    bottom_rows = [[btn_bottom_buy], [btn_bottom_nomore]]
+    assert bottom_rows[0][0].text == "💎 ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ"
+    assert bottom_rows[1][0].text == "🚫 ɴᴏ ᴍᴏʀᴇ ᴘᴀ特ᴇꜱ" or "🚫 ɴᴏ ᴍᴏʀᴇ ᴘᴀɢᴇꜱ"
+    assert bottom_rows[1][0].text == "🚫 ɴᴏ ᴍᴏʀᴇ ᴘᴀɢᴇꜱ"

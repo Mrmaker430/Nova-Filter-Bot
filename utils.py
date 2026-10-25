@@ -29,6 +29,17 @@ class temp(object):
     PREMIUM = {}
 
 
+SMALL_CAPS_TRANS = str.maketrans(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
+)
+
+def to_small_caps(text: str) -> str:
+    if not text:
+        return ""
+    return str(text).translate(SMALL_CAPS_TRANS)
+
+
 def get_plan_name(days):
     plan_names = {
         7: "1 Week",
