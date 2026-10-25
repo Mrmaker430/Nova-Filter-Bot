@@ -11,7 +11,7 @@ from pyrogram.types import WebAppInfo, PreCheckoutQuery, Message, LabeledPrice, 
 from pyrogram import Client, filters, enums
 from utils import get_plan_name, handle_next_back, is_premium, get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_readable_time, get_poster, generate_poster_image, get_imdb_suggestions, temp, get_settings, save_group_settings, render_list_page, to_small_caps
 from database.users_chats_db import db
-from database.ia_filterdb import delete_files, delete_all_files, db_count_documents, second_db_count_documents, get_search_results
+from database.ia_filterdb import delete_files, delete_all_files, db_count_documents, second_db_count_documents, get_search_results, get_file_details
 from plugins.commands import get_grp_stg
 from urllib.parse import quote
 
@@ -782,9 +782,22 @@ async def cb_handler(client: Client, query: CallbackQuery):
         
     elif query.data.startswith("stream"):
         file_id = query.data.split('#', 1)[1]
-        if not await is_premium(query.from_user.id, client):
-            return await query.answer(f"💎 This feature is reserved for VIP Premium members! Use /plan to upgrade.", show_alert=True)
-        msg = await client.send_cached_media(chat_id=BIN_CHANNEL, file_id=file_id)
+        user_id = query.from_user.id if query.from_user else 0
+        user_name = f"@{query.from_user.username}" if (query.from_user and query.from_user.username) else "None"
+        file_info = await get_file_details(file_id)
+        file_name = file_info.get("file_name", "Media") if file_info else "Media"
+        log_caption = (
+            f"#LinkGenrated\n\n"
+            f"Iᴅ :  {user_id}\n"
+            f"Uꜱᴇʀɴᴀᴍᴇ : {user_name}\n\n"
+            f"Nᴀᴍᴇ : {file_name}"
+        )
+        msg = await client.send_cached_media(chat_id=BIN_CHANNEL, file_id=file_id, caption=log_caption)
+        if LOG_CHANNEL and LOG_CHANNEL != BIN_CHANNEL:
+            try:
+                await client.send_cached_media(chat_id=LOG_CHANNEL, file_id=file_id, caption=log_caption)
+            except Exception:
+                pass
         watch = f"{URL}watch/{msg.id}"
         download = f"{URL}download/{msg.id}"
         user_watchlist = await db.get_watchlist(query.from_user.id)

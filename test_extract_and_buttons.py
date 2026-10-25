@@ -102,5 +102,43 @@ def test_search_results_button_styles_and_order():
     # Verify order: Buy Premium comes before No More Pages
     bottom_rows = [[btn_bottom_buy], [btn_bottom_nomore]]
     assert bottom_rows[0][0].text == "💎 ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ"
-    assert bottom_rows[1][0].text == "🚫 ɴᴏ ᴍᴏʀᴇ ᴘᴀ特ᴇꜱ" or "🚫 ɴᴏ ᴍᴏʀᴇ ᴘᴀɢᴇꜱ"
     assert bottom_rows[1][0].text == "🚫 ɴᴏ ᴍᴏʀᴇ ᴘᴀɢᴇꜱ"
+
+
+@pytest.mark.asyncio
+async def test_stream_callback_watch_download_caption(mocker):
+    from unittest.mock import AsyncMock, MagicMock
+    from plugins.pm_filter import cb_handler
+
+    client = AsyncMock()
+    query = AsyncMock()
+    query.data = "stream#1234567890abcdef"
+    query.from_user = MagicMock(id=99999, username="testuser")
+    query.from_user.id = 99999
+    query.from_user.username = "testuser"
+    query.message = MagicMock()
+    query.message.reply_markup = None
+
+    # Mock db and get_file_details
+    mocker.patch("plugins.pm_filter.get_file_details", new_callable=AsyncMock, return_value={"file_name": "Test.Movie.2024.mp4"})
+    mocker.patch("plugins.pm_filter.db.get_watchlist", new_callable=AsyncMock, return_value=[])
+    mocker.patch("plugins.pm_filter.db.get_favorites", new_callable=AsyncMock, return_value=[])
+
+    msg_mock = MagicMock()
+    msg_mock.id = 777
+    client.send_cached_media = AsyncMock(return_value=msg_mock)
+
+    await cb_handler(client, query)
+
+    # Check send_cached_media call
+    assert client.send_cached_media.called
+    call_args = client.send_cached_media.call_args
+    caption = call_args.kwargs.get("caption", "")
+
+    expected_caption = (
+        "#LinkGenrated\n\n"
+        "Iᴅ :  99999\n"
+        "Uꜱᴇʀɴᴀᴍᴇ : @testuser\n\n"
+        "Nᴀᴍᴇ : Test.Movie.2024.mp4"
+    )
+    assert caption.strip() == expected_caption.strip()
