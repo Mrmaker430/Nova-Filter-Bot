@@ -548,10 +548,10 @@ async def update_verify_status(user_id, verify_token="", is_verified=False, link
 
     
 async def is_premium(user_id, bot):
-    if not IS_PREMIUM:
-        return False
     if user_id in ADMINS:
         return True
+    if not IS_PREMIUM:
+        return False
     mp = await db.get_plan(user_id)
     if mp['premium']:
         if mp['expire'] < datetime.now():
