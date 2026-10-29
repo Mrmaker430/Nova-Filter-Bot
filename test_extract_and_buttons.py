@@ -16,26 +16,70 @@ def test_clean_title():
     assert clean_title("") == "Media"
 
 def test_button_structure_in_commands():
-    # Simulate button construction for single file
     file_id = "60a1b2c3d4e5f67890123456"
     f_id_str = str(file_id)
     watch_btn = InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
     fav_btn = InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{f_id_str}")
     extract_btn = InlineKeyboardButton("🎧 Audio Tracks 🎧", callback_data=f"extract_data:{f_id_str}")
 
-    btn = [[
-        InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
-    ],[
-        extract_btn
-    ],[
-        watch_btn, fav_btn
-    ],[
-        InlineKeyboardButton("✖️ Close", callback_data="close_data")
-    ]]
+    IS_STREAM = True
+    URL = "https://example.com/"
 
-    assert btn[0][0].text == "⚡ Watch & Download"
-    assert btn[1][0].text == "🎧 Audio Tracks 🎧"
-    assert btn[1][0].callback_data == f"extract_data:{f_id_str}"
+    # Premium / Admin user
+    user_is_prm = True
+    if IS_STREAM and URL and user_is_prm:
+        btn_prm = [[
+            InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
+        ],[
+            extract_btn
+        ],[
+            watch_btn, fav_btn
+        ],[
+            InlineKeyboardButton("✖️ Close", callback_data="close_data")
+        ]]
+    else:
+        btn_prm = [[
+            extract_btn
+        ],[
+            watch_btn, fav_btn
+        ],[
+            InlineKeyboardButton("✖️ Close", callback_data="close_data")
+        ]]
+
+    assert btn_prm[0][0].text == "⚡ Watch & Download"
+    assert btn_prm[1][0].text == "🎧 Audio Tracks 🎧"
+
+    # Non-premium user
+    user_is_prm = False
+    if IS_STREAM and URL and user_is_prm:
+        btn_non_prm = [[
+            InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
+        ],[
+            extract_btn
+        ],[
+            watch_btn, fav_btn
+        ],[
+            InlineKeyboardButton("✖️ Close", callback_data="close_data")
+        ]]
+    else:
+        btn_non_prm = [[
+            extract_btn
+        ],[
+            watch_btn, fav_btn
+        ],[
+            InlineKeyboardButton("✖️ Close", callback_data="close_data")
+        ]]
+
+    assert btn_non_prm[0][0].text == "🎧 Audio Tracks 🎧"
+    assert not any(b.text == "⚡ Watch & Download" for row in btn_non_prm for b in row)
+
+def test_is_premium_admin_check():
+    import asyncio
+    from utils import is_premium
+    from info import ADMINS
+    if ADMINS:
+        admin_id = ADMINS[0]
+        assert asyncio.run(is_premium(admin_id, None)) is True
 
 
 def test_to_small_caps():

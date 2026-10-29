@@ -217,6 +217,7 @@ async def start(client, message):
         total_files = await message.reply(f"<b><i>🗂 Total files - <code>{len(files)}</code></i></b>")
         user_watchlist = await db.get_watchlist(message.from_user.id)
         user_favorites = await db.get_favorites(message.from_user.id)
+        user_is_prm = await is_premium(message.from_user.id, client)
         for file in files:
             CAPTION = settings['caption']
             f_caption = CAPTION.format(
@@ -228,7 +229,7 @@ async def start(client, message):
             watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{f_id_str}") if f_id_str in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
             fav_btn = InlineKeyboardButton("💔 Remove Favorites", callback_data=f"del_fav#{f_id_str}") if f_id_str in user_favorites else InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{f_id_str}")
             extract_btn = InlineKeyboardButton("🎧 Audio Tracks 🎧", callback_data=f"extract_data:{f_id_str}")
-            if IS_STREAM and URL:
+            if IS_STREAM and URL and user_is_prm:
                 btn = [[
                     InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
                 ],[
@@ -319,11 +320,12 @@ async def start(client, message):
     )
     user_watchlist = await db.get_watchlist(message.from_user.id)
     user_favorites = await db.get_favorites(message.from_user.id)
+    user_is_prm = await is_premium(message.from_user.id, client)
     f_id_str = str(file_id)
     watch_btn = InlineKeyboardButton("🗑️ Remove Watchlist", callback_data=f"del_watch#{f_id_str}") if f_id_str in user_watchlist else InlineKeyboardButton("🔖 Add Watchlist", callback_data=f"add_watch#{f_id_str}")
     fav_btn = InlineKeyboardButton("💔 Remove Favorites", callback_data=f"del_fav#{f_id_str}") if f_id_str in user_favorites else InlineKeyboardButton("❤️ Add Favorites", callback_data=f"add_fav#{f_id_str}")
     extract_btn = InlineKeyboardButton("🎧 Audio Tracks 🎧", callback_data=f"extract_data:{f_id_str}")
-    if IS_STREAM and URL:
+    if IS_STREAM and URL and user_is_prm:
         btn = [[
             InlineKeyboardButton("⚡ Watch & Download", callback_data=f"stream#{f_id_str}")
         ],[
