@@ -62,7 +62,7 @@ Built for channel admins who want a self-hosted alternative to paid file-search 
 | `/ban_user` · `/unban_user` | Ban or unban a user |
 | `/ban_grp` · `/unban_grp` | Disable or enable the bot in a group |
 | `/users` · `/chats` | List users or groups |
-| `/invite_link` | Generate an invite link for the current chat |
+| `/fetch` · `/invite_link` | Generate an invite link for the specified chat |
 | `/leave` | Remove the bot from a group |
 | `/restart` | Restart the bot |
 

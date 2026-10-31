@@ -125,7 +125,7 @@ class script(object):
 • 👥 /users - PM users stats
 • 📁 /chats - Group chats stats
 • 🚪 /leave - Leave group chat
-• 🔗 /invite_link - Create invite link
+• 🔗 /fetch or /invite_link - Create invite link
 
 <b>💎 VIP Premium & FSub</b>
 • 👑 /add_prm - Grant VIP status
