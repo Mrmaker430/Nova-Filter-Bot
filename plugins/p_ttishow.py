@@ -3,7 +3,15 @@ import os
 import sys
 from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ChatJoinRequest
-from pyrogram.errors import MessageTooLong, PeerIdInvalid
+from pyrogram.errors import (
+    MessageTooLong,
+    PeerIdInvalid,
+    ChatAdminRequired,
+    UserNotParticipant,
+    ChannelPrivate,
+    ChatForbidden,
+    RPCError,
+)
 from info import ADMINS, LOG_CHANNEL, PICS, SUPPORT_LINK, UPDATES_LINK, REQUEST_FORCE_SUB_CHANNEL
 from database.users_chats_db import db
 from utils import temp, get_settings
@@ -132,20 +140,66 @@ async def re_enable_chat(bot, message):
     temp.BANNED_CHATS.remove(int(chat_))
     await message.reply("✅ <b>Chat Re-Enabled!</b>\n\n<blockquote>This group is now active again and auto-filter is functioning normally.</blockquote>")
 
-@Client.on_message(filters.command('invite_link') & filters.user(ADMINS))
+@Client.on_message(filters.command(['fetch', 'invite_link']) & filters.user(ADMINS))
 async def gen_invite_link(bot, message):
+    cmd = message.command[0] if message.command else "fetch"
     if len(message.command) == 1:
-        return await message.reply('⚠️ <b>Missing Chat ID!</b>\n\n<blockquote>Please provide a valid numeric Chat ID along with the command. Example: <code>/ban_chat -100123456789</code></blockquote>')
-    chat = message.command[1]
+        return await message.reply(
+            f"❌ <b>Please provide a chat ID or username.</b>\n\n"
+            f"ℹ️ <b>Usage:</b> <code>/{cmd} &lt;chat_id&gt;</code>\n"
+            f"<b>Example:</b> <code>/{cmd} -1001234567890</code> or <code>/{cmd} @mygroup</code>"
+        )
+
+    raw_chat_id = message.command[1]
+    if raw_chat_id.startswith("@"):
+        chat = raw_chat_id
+    else:
+        try:
+            chat = int(raw_chat_id)
+        except ValueError:
+            return await message.reply(
+                "❌ <b>Invalid chat ID format.</b>\n\n"
+                "It must be an integer (e.g., <code>-1001234567890</code>) "
+                "or a public username (e.g., <code>@mygroup</code>)."
+            )
+
     try:
-        chat = int(chat)
-    except:
-        return await message.reply('❌ <b>Invalid Chat ID!</b>\n\n<blockquote>Please enter a valid numeric Telegram Chat ID starting with <code>-100</code>.</blockquote>')
-    try:
-        link = await bot.create_chat_invite_link(chat)
+        link = await bot.create_chat_invite_link(
+            chat_id=chat,
+            name="Bot-generated link"
+        )
+        return await message.reply(
+            f"✅ <b>Invite link generated successfully!</b>\n\n"
+            f"<b>Chat ID:</b> <code>{chat}</code>\n"
+            f"<b>Link:</b> {link.invite_link}\n\n"
+            f"⚠️ <i>Note: This is a new link created by the bot. "
+            f"It does not reveal private links created by other admins.</i>"
+        )
+    except ChatAdminRequired as e:
+        return await message.reply(
+            f"❌ <b>Permission denied.</b>\n\n"
+            f"The bot is not an administrator or lacks the required 'Invite Users' rights in that chat.\n"
+            f"<b>Details:</b> <code>{getattr(e, 'MESSAGE', str(e))}</code>"
+        )
+    except (PeerIdInvalid, UserNotParticipant, ChannelPrivate) as e:
+        return await message.reply(
+            f"❌ <b>Could not generate invite link.</b>\n\n"
+            f"<b>Reason:</b> <code>{getattr(e, 'MESSAGE', str(e))}</code>\n\n"
+            f"Please ensure:\n"
+            f"• The bot is an <b>administrator</b> in that chat.\n"
+            f"• The bot has the <b>Invite Users</b> permission.\n"
+            f"• The chat ID or username is correct."
+        )
+    except RPCError as e:
+        return await message.reply(
+            f"❌ <b>Telegram error occurred.</b>\n\n"
+            f"<b>Details:</b> <code>{getattr(e, 'MESSAGE', str(e))}</code>"
+        )
     except Exception as e:
-        return await message.reply(f'❌ <b>Operation Failed!</b>\n\n<blockquote>⚠️ Error details: <code>{e}</code></blockquote>')
-    await message.reply(f'🔗 <b>Invite Link Generated:</b>\n\n<blockquote>{link.invite_link}</blockquote>')
+        return await message.reply(
+            f"❌ <b>Operation Failed!</b>\n\n"
+            f"<b>Error details:</b> <code>{e}</code>"
+        )
 
 @Client.on_message(filters.command('ban_user') & filters.user(ADMINS))
 async def ban_a_user(bot, message):
