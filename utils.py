@@ -29,6 +29,118 @@ class temp(object):
     PREMIUM = {}
 
 
+WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
+COMMONS_API_ENDPOINT = "https://commons.wikimedia.org/w/api.php"
+WIKIDATA_HEADERS = {
+    "User-Agent": "NovaFilterBot/2.0 (contact@example.com)"
+}
+
+
+async def query_wikidata(sparql_query, timeout_seconds=15):
+    """Send SPARQL query to Wikidata asynchronously."""
+    params = {"query": sparql_query, "format": "json"}
+    try:
+        timeout = aiohttp.ClientTimeout(total=timeout_seconds)
+        async with aiohttp.ClientSession(timeout=timeout, headers=WIKIDATA_HEADERS) as session:
+            async with session.get(WIKIDATA_ENDPOINT, params=params) as resp:
+                if resp.status == 200:
+                    return await resp.json()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Error querying Wikidata: {e}")
+    return None
+
+
+async def get_image_url_from_commons(filename_or_url, width=400, timeout_seconds=15):
+    """
+    Use Wikimedia Commons API to convert a filename or Wikimedia Commons file URL
+    to a direct thumbnail/poster URL.
+    """
+    if not filename_or_url:
+        return None
+
+    filename = filename_or_url.strip()
+    if "/" in filename:
+        filename = filename.split("/")[-1]
+
+    import urllib.parse
+    filename = urllib.parse.unquote(filename)
+    if filename.lower().startswith("file:"):
+        filename = filename[5:]
+
+    title = f"File:{filename}"
+    params = {
+        "action": "query",
+        "titles": title,
+        "prop": "imageinfo",
+        "iiprop": "url",
+        "iiurlwidth": width,
+        "format": "json"
+    }
+    try:
+        timeout = aiohttp.ClientTimeout(total=timeout_seconds)
+        async with aiohttp.ClientSession(timeout=timeout, headers=WIKIDATA_HEADERS) as session:
+            async with session.get(COMMONS_API_ENDPOINT, params=params) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    pages = data.get("query", {}).get("pages", {})
+                    for page in pages.values():
+                        imageinfo = page.get("imageinfo", [])
+                        if imageinfo:
+                            return imageinfo[0].get("thumburl") or imageinfo[0].get("url")
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Error fetching image for {filename}: {e}")
+    return None
+
+
+async def search_bengali_films_wikidata(title_filter=None, year=None, with_posters=True):
+    """
+    Search for Bengali films using Wikidata SPARQL and Commons API.
+    Returns a list of matching films with metadata.
+    """
+    query = """
+    SELECT DISTINCT ?film ?filmLabel ?year ?imdbId ?image WHERE {
+      ?film wdt:P31 wd:Q11424 .          # instance of: film
+      ?film wdt:P364 wd:Q9610 .          # original language: Bengali
+      OPTIONAL { ?film wdt:P577 ?date . BIND(YEAR(?date) AS ?year) }
+      OPTIONAL { ?film wdt:P345 ?imdbId . }
+      OPTIONAL { ?film wdt:P18 ?image . } # P18: image (poster/related image)
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en,bn". }
+    }
+    ORDER BY ?year
+    """
+    results = await query_wikidata(query)
+    if not results:
+        return []
+
+    films = []
+    bindings = results.get('results', {}).get('bindings', [])
+    for binding in bindings:
+        film_title = binding.get('filmLabel', {}).get('value', 'Unknown')
+        film_year = binding.get('year', {}).get('value')
+
+        if title_filter and title_filter.lower() not in film_title.lower():
+            continue
+        if year and film_year and str(year) != str(film_year):
+            continue
+
+        image_filename = binding.get('image', {}).get('value')
+        poster_url = None
+        if with_posters and image_filename:
+            poster_url = await get_image_url_from_commons(image_filename)
+
+        films.append({
+            'title': film_title,
+            'year': film_year or "N/A",
+            'imdb_id': binding.get('imdbId', {}).get('value', 'N/A'),
+            'wikidata_url': binding.get('film', {}).get('value', ''),
+            'image_filename': image_filename,
+            'poster_url': poster_url
+        })
+    return films
+
+
 SMALL_CAPS_TRANS = str.maketrans(
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
     "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
@@ -169,136 +281,157 @@ async def upload_image(file_path):
 
 
 async def get_poster(query):
-    if not TMDB_API_KEY:
-        return None
-    TMDB_BASE = "https://api.themoviedb.org/3"
-
     query = query.strip()
     
     import PTN
-    
     parsed = PTN.parse(query)
     title = parsed.get("title", query)
     year = parsed.get("year", None)
 
-    timeout = aiohttp.ClientTimeout(total=10)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        url = f"{TMDB_BASE}/search/multi"
-        params = {
-            "api_key": TMDB_API_KEY,
-            "query": title
-        }
-        try:
-            async with session.get(url, params=params) as resp:
-                if resp.status != 200:
-                    return None
-                res = await resp.json()
-        except Exception:
-            return None
+    # 1. Try TMDB if API key is present
+    if TMDB_API_KEY:
+        TMDB_BASE = "https://api.themoviedb.org/3"
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            url = f"{TMDB_BASE}/search/multi"
+            params = {
+                "api_key": TMDB_API_KEY,
+                "query": title
+            }
+            res = None
+            try:
+                async with session.get(url, params=params) as resp:
+                    if resp.status == 200:
+                        res = await resp.json()
+            except Exception:
+                res = None
 
-        results = [
-            r for r in res.get("results", [])
-            if r.get("media_type") in ["movie", "tv"]
-        ]
+            results = [
+                r for r in (res.get("results", []) if res else [])
+                if r.get("media_type") in ["movie", "tv"]
+            ]
 
-        if not results:
-            return None
+            if results:
+                if year:
+                    filtered = []
+                    for r in results:
+                        release = r.get("release_date") or r.get("first_air_date")
+                        if release and release.startswith(str(year)):
+                            filtered.append(r)
+                    if filtered:
+                        results = filtered
 
-        if year:
-            filtered = []
-            for r in results:
-                release = r.get("release_date") or r.get("first_air_date")
-                if release and release.startswith(str(year)):
-                    filtered.append(r)
+                data = results[0]
+                tmdb_id = data["id"]
+                media_type = data["media_type"]
 
-            if filtered:
-                results = filtered
+                full_data = None
+                try:
+                    async with session.get(
+                        f"{TMDB_BASE}/{media_type}/{tmdb_id}",
+                        params={"api_key": TMDB_API_KEY}
+                    ) as resp:
+                        if resp.status == 200:
+                            full_data = await resp.json()
+                except Exception:
+                    full_data = None
 
-        data = results[0]
-        tmdb_id = data["id"]
-        media_type = data["media_type"]
+                if full_data:
+                    data = full_data
+                    movie_title = data.get("title") or data.get("name")
+                    poster = f"https://image.tmdb.org/t/p/original{data['poster_path']}" if data.get("poster_path") else None
+                    backdrop = f"https://image.tmdb.org/t/p/w1280{data['backdrop_path']}" if data.get("backdrop_path") else None
+                    logo = None
+                    try:
+                        async with session.get(
+                            f"{TMDB_BASE}/{media_type}/{tmdb_id}/images",
+                            params={"api_key": TMDB_API_KEY, "include_image_language": "en,null"}
+                        ) as resp:
+                            if resp.status == 200:
+                                img_res = await resp.json()
+                                logos = img_res.get("logos", [])
+                                if logos:
+                                    en_logos = [l for l in logos if l.get("iso_639_1") == "en"]
+                                    selected_logo = en_logos[0] if en_logos else logos[0]
+                                    if selected_logo.get("file_path"):
+                                        logo = f"https://image.tmdb.org/t/p/w500{selected_logo['file_path']}"
+                    except Exception as e:
+                        import logging
+                        logging.getLogger(__name__).error(f"Error fetching tmdb logo: {e}")
 
-        try:
-            async with session.get(
-                f"{TMDB_BASE}/{media_type}/{tmdb_id}",
-                params={"api_key": TMDB_API_KEY}
-            ) as resp:
-                if resp.status != 200:
-                    return None
-                data = await resp.json()
-        except Exception:
-            return None
+                    release_date = data.get("release_date") or data.get("first_air_date") or "N/A"
+                    genres_list = data.get("genres", [])
+                    genres = ", ".join([f"#{g['name'].title().replace(' ', '').replace('-', '')}" for g in genres_list]) if genres_list else "N/A"
 
-        title = data.get("title") or data.get("name")
+                    if media_type == "movie":
+                        runtime_val = data.get("runtime")
+                    else:
+                        ep_rt = data.get("episode_run_time")
+                        runtime_val = ep_rt[0] if ep_rt else None
+                    runtime = f"{runtime_val} min" if runtime_val else "N/A"
 
-        poster = None
-        if data.get("poster_path"):
-            poster = f"https://image.tmdb.org/t/p/original{data['poster_path']}"
+                    plot = data.get("overview")
+                    plot = plot if LONG_IMDB_DESCRIPTION else (str(plot)[:200] if plot else "N/A")
+                    rating = data.get("vote_average") or "N/A"
+                    votes = data.get("vote_count") or "N/A"
 
-        backdrop = None
-        if data.get("backdrop_path"):
-            backdrop = f"https://image.tmdb.org/t/p/w1280{data['backdrop_path']}"
+                    langs_list = data.get("spoken_languages", [])
+                    languages = ", ".join([f"#{l['english_name'].title().replace(' ', '').replace('-', '')}" for l in langs_list]) if langs_list else "N/A"
 
-        logo = None
-        try:
-            async with session.get(
-                f"{TMDB_BASE}/{media_type}/{tmdb_id}/images",
-                params={"api_key": TMDB_API_KEY, "include_image_language": "en,null"}
-            ) as resp:
-                if resp.status == 200:
-                    img_res = await resp.json()
-                    logos = img_res.get("logos", [])
-                    if logos:
-                        en_logos = [l for l in logos if l.get("iso_639_1") == "en"]
-                        selected_logo = en_logos[0] if en_logos else logos[0]
-                        if selected_logo.get("file_path"):
-                            logo = f"https://image.tmdb.org/t/p/w500{selected_logo['file_path']}"
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(f"Error fetching tmdb logo: {e}")
+                    countries_list = data.get("production_countries", [])
+                    countries = ", ".join([f"#{c['name'].title().replace(' ', '').replace('-', '')}" for c in countries_list]) if countries_list else "N/A"
 
-    release_date = data.get("release_date") or data.get("first_air_date") or "N/A"
+                    return {
+                        "title": movie_title,
+                        "tmdb_id": tmdb_id,
+                        "kind": media_type,
+                        "languages": languages,
+                        "countries": countries,
+                        "release_date": release_date,
+                        "year": release_date[:4] if release_date else None,
+                        "genres": genres,
+                        "runtime": runtime,
+                        "rating": rating,
+                        "votes": votes,
+                        "poster": poster,
+                        "backdrop": backdrop,
+                        "logo": logo,
+                        "plot": plot,
+                        "url": f"https://www.themoviedb.org/{media_type}/{tmdb_id}"
+                    }
 
-    genres_list = data.get("genres", [])
-    genres = ", ".join([f"#{g['name'].title().replace(' ', '').replace('-', '')}" for g in genres_list]) if genres_list else "N/A"
+    # 2. Fallback to Wikidata for Bengali films if not found on TMDB
+    try:
+        bengali_results = await search_bengali_films_wikidata(title_filter=title, year=year, with_posters=True)
+        if bengali_results:
+            b_film = bengali_results[0]
+            b_year = b_film.get("year")
+            imdb_id = b_film.get("imdb_id")
+            release_date = str(b_year) if b_year and b_year != "N/A" else "N/A"
+            film_url = f"https://www.imdb.com/title/{imdb_id}" if imdb_id and imdb_id != "N/A" else (b_film.get("wikidata_url") or "")
+            return {
+                "title": b_film.get("title") or title,
+                "tmdb_id": imdb_id if imdb_id and imdb_id != "N/A" else "N/A",
+                "kind": "movie",
+                "languages": "#Bengali",
+                "countries": "#India",
+                "release_date": release_date,
+                "year": str(b_year) if b_year and b_year != "N/A" else None,
+                "genres": "#BengaliCinema",
+                "runtime": "N/A",
+                "rating": "N/A",
+                "votes": "N/A",
+                "poster": b_film.get("poster_url"),
+                "backdrop": b_film.get("poster_url"),
+                "logo": None,
+                "plot": "N/A",
+                "url": film_url
+            }
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Error in Bengali film fallback: {e}")
 
-    if media_type == "movie":
-        runtime_val = data.get("runtime")
-    else:
-        ep_rt = data.get("episode_run_time")
-        runtime_val = ep_rt[0] if ep_rt else None
-    runtime = f"{runtime_val} min" if runtime_val else "N/A"
-
-    plot = data.get("overview")
-    plot = plot if LONG_IMDB_DESCRIPTION else (str(plot)[:200] if plot else "N/A")
-
-    rating = data.get("vote_average") or "N/A"
-    votes = data.get("vote_count") or "N/A"
-
-    langs_list = data.get("spoken_languages", [])
-    languages = ", ".join([f"#{l['english_name'].title().replace(' ', '').replace('-', '')}" for l in langs_list]) if langs_list else "N/A"
-
-    countries_list = data.get("production_countries", [])
-    countries = ", ".join([f"#{c['name'].title().replace(' ', '').replace('-', '')}" for c in countries_list]) if countries_list else "N/A"
-
-    return {
-        "title": title,
-        "tmdb_id": tmdb_id,
-        "kind": media_type,
-        "languages": languages,
-        "countries": countries,
-        "release_date": release_date,
-        "year": release_date[:4] if release_date else None,
-        "genres": genres,
-        "runtime": runtime,
-        "rating": rating,
-        "votes": votes,
-        "poster": poster,
-        "backdrop": backdrop,
-        "logo": logo,
-        "plot": plot,
-        "url": f"https://www.themoviedb.org/{media_type}/{tmdb_id}"
-    }
+    return None
 
 
 def _render_poster_canvas(data, backdrop_bytes, poster_bytes, logo_bytes, channel_handle):
